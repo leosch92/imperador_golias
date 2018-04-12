@@ -12,6 +12,14 @@ type Tree struct {
 	Right *Tree
 }
 
+func (t Tree) checkIfNode() bool{
+	return (t.Left==nil&&t.Right==nil)
+}
+
+func (t Tree) toString() string{
+	return t.Value
+}
+
 func findMinMax(tree *Tree, min *int, max *int, hd int) {
 	if tree == nil {
 		return

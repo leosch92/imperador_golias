@@ -4,7 +4,6 @@ import (
 	"log"
 	"os"
 	"strings"
-
 )
 
 func main() {
@@ -16,5 +15,6 @@ func main() {
 		log.Fatal(err)
 	}
 	t := got.(Tree)
-	printTree(&t)
+	resolverSMC(iniciaSMC(), t)
+
 }

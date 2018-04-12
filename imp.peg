@@ -9,6 +9,9 @@
 //
 package main
 
+var toBPLC = map[string]string{
+	"+":"add",
+}
 
 func toIfaceSlice(v interface{}) []interface{} {
     if v == nil {
@@ -23,13 +26,14 @@ func eval(first, rest interface{}) Tree {
     for _, v := range restSl {
         restExpr := toIfaceSlice(v)
         r := restExpr[3].(string)
-        op := restExpr[1].(string)
+        op := toBPLC[restExpr[1].(string)]
         rightTree := t
         leftTree := Tree{Left: nil, Value: r, Right: nil}
         t = Tree{Left: &leftTree, Value: op, Right: &rightTree}
     }
     return t
 }
+
 
 }
 
