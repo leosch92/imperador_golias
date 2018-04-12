@@ -56,39 +56,3 @@ func (smc SMC) Ei()SMC{
 	}
 	return smc
 }
-
-
-func main(){
-	var smc = *new(SMC)
-	smc.M = make(map[string]string)
-	fmt.Println("Inicializa SMC")
-	fmt.Println(smc)
-	fmt.Println("\nImportante: ler pilha da direita para esquerda")
-
-	smc.C = smc.C.push("e'")
-	smc.C = smc.C.push("+")
-	smc.C = smc.C.push("e")
-	smc.C = smc.C.push("dado1")
-	smc.C = smc.C.push("dado2")
-	smc.S = smc.S.push("dado3")
-	smc.M["dado1"] = "dado4"
-	fmt.Println("\nSMC preenchida")
-	fmt.Println(smc)
-
-	fmt.Println("\nFunção En equivale à (S,M,nC)=>(nS,M,C), isso é o valor é transferido da pilha C para a pilha S")
-	smc = smc.En()
-	fmt.Println(smc)
-
-	fmt.Println("\nFunção Ev equivale à (S,M,vC)=>(M(v)S,M,C), isso é o valor da posição v de M é colocada na pilha S")
-	smc = smc.Ev()
-	fmt.Println(smc)
-
-	fmt.Println("\nFunção Ee equivale à (S,M,e op e' C)=>(S,M,e e' op C), isso é a operação é coloca no modo pós-fixado")
-	smc = smc.Ee()
-	fmt.Println(smc)
-
-	fmt.Println("\nFunção Ei equivale à (S,M,e e' op C)=>(eval(e,op,e')S,M,C), isso é a operação é executada e colacada na pilha S")
-	smc = smc.Ei()
-	fmt.Println(smc)
-
-}
