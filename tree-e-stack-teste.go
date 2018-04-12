@@ -63,7 +63,7 @@ func (tree *Tree) dismember() (*Tree, string, *Tree) {
 	return tree.Left, tree.Value, tree.Right
 }
 
-//Implementação de Struct de Pilha-> utiliza slices para facilitar
+//Implementaï¿½ï¿½o de Struct de Pilha-> utiliza slices para facilitar
 
 func (s stack) push(info string) stack {
 	s.data = append(s.data, info)
@@ -83,26 +83,54 @@ func (s stack) size() int {
 	return len(s.data)
 }
 
-func (s *stack) push_tree(tree *Tree) (*stack) {
+/*func (s *stack) push_tree(tree *Tree) (*stack) {
     l_node, value, r_node := tree.dismember()
     s.push(&Tree(nil, value, nil))
     s.push(l_node)
     s.push(r_node)
     return s
+}*/
+
+func (t *Tree) print_bplc() {
+	
+	if t == nil {
+		return
+	}
+	
+	if (t.Left == nil) && (t.Right == nil) {
+		fmt.Print(t.Value)
+	} else {
+		fmt.Print(t.Value)
+		fmt.Print("(")
+		t.Left.print_bplc()
+		fmt.Print(", ")
+		t.Right.print_bplc()
+		fmt.Print(")")
+	}
+	
 }
+
+
 
 func main() {
 	tree := Tree{nil, "add", nil}
-	tree.insertLeft("3")
-	tree.insertRight("2")
-	tree.print()
+	tree.insertLeft("add")
+	tree.insertRight("add")
+	tree.Right.insertLeft("1")
+	tree.Right.insertRight("3")
+	tree.Left.insertLeft("2")
+	tree.Left.insertRight("add")
+	tree.Left.Right.insertLeft("5")
+	tree.Left.Right.insertRight("6")
+	tree.print_bplc()
 	//tree_l, value, tree_r := tree.dismember()
-	s := stack{}
+	/*s := stack{}
 	r := s.push_tree(&tree)
 	_, a := r.pop()
 	_, b := r.pop()
 	_, c := r.pop()
 	fmt.Print(a.print())
 	fmt.Print(b.print())
-	fmt.Print(c.print())
+	fmt.Print(c.print())*/
+	
 }
