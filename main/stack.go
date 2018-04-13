@@ -36,12 +36,12 @@ func (s Stack) size() int{
 func (s Stack) print() {
 	l := len(s.data)
 	if l == 0 {
-		fmt.Print("0")
 		return
 	}
 	printBplc(&s.data[l-1])
+	fmt.Print(" ")
 	for i := l - 2; i >= 0; i-- {
-		fmt.Print(" ")
 		printBplc(&s.data[i])
+		fmt.Print(" ")
 	}
 }

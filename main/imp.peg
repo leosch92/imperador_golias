@@ -1,0 +1,58 @@
+{
+// Command calculator is a small PEG-generated parser that computes
+// simple math using integers.
+//
+// Example usage: $ calculator "3 + (2 - 5 * 12)"
+//
+// Inspired by pegjs arithmetic example:
+// https://github.com/pegjs/pegjs/blob/master/examples/arithmetics.pegjs
+//
+package main
+
+var toBPLC = map[string]string{
+	"+":"add",
+}
+
+func toIfaceSlice(v interface{}) []interface{} {
+    if v == nil {
+        return nil
+    }
+    return v.([]interface{})
+}
+
+func eval(first, rest interface{}) Tree {
+    t := Tree{Left: nil, Value: first.(string), Right: nil}
+    restSl := toIfaceSlice(rest)
+    for _, v := range restSl {
+        restExpr := toIfaceSlice(v)
+        r := restExpr[3].(string)
+        op := toBPLC[restExpr[1].(string)]
+        rightTree := t
+        leftTree := Tree{Left: nil, Value: r, Right: nil}
+        t = Tree{Left: &leftTree, Value: op, Right: &rightTree}
+    }
+    return t
+}
+
+
+}
+
+Input <- expr:Expr EOF {
+    return expr, nil
+}
+
+Expr <- _ first:Integer rest:( _ AddOp _ Integer )* _ {
+    return eval(first, rest), nil
+}
+
+AddOp <- '+' {
+    return string(c.text), nil
+}
+
+Integer <- '-'? [0-9]+ {
+    return string(c.text), nil
+}
+
+_ "whitespace" <- [ \n\t\r]*
+
+EOF <- !.
