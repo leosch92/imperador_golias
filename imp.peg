@@ -60,11 +60,36 @@ func eval(first, rest interface{}) Tree {
 
 }
 
-Input <- expr:Expr EOF {
-    return expr, nil
+Input <- cmd:Command EOF {
+    return cmd, nil
+} / Teste
+
+// ATENÇÃO!!! Regra criada especialmente para testes
+// Qualquer programa que você quiser testar é só incluir as regras que você deseja
+// Exemplo: quero testar "5==5", colocar então a regra associada BoolExp no Teste
+// Como BoolExp é uma expressão booleana, ele vai conseguir parsear um programa que contenha
+// uma expressão booleana sozinha, graças a essa regra de teste
+Teste <- BoolExp { 
+    return string(c.text), nil
 }
 
-Expr <- _ first:Term rest:( _ AddOp _ Term )* _ {
+Command <- Identifier _ ":=" _ Expression {
+    return string(c.text), nil
+} / While
+
+While <- "while" __ '(' BoolExp ')' __ "do" _ Block{
+    return string(c.text), nil
+}
+
+Block <- '{' _ Command _ '}'
+
+Expression <- ArithExpr /
+              Identifier /
+              Identifier AddOp Identifier /
+              Identifier MulOp Identifier /
+              BoolExp
+
+ArithExpr <- _ first:Term rest:( _ AddOp _ Term )* _ {
     return eval(first, rest), nil
 }
 
@@ -90,6 +115,17 @@ Integer <- '-'? [0-9]+ {
     return string(c.text), nil
 }
 
+Identifier <- [a-zA-Z][0-9a-zA-Z]*
+
+BoolExp <- UnaryBoolOp Identifier /
+           Identifier __ BinaryBoolOp __ Identifier /
+           Identifier __ BinaryBoolOp __ ArithExpr
+
+UnaryBoolOp <- '~'
+
+BinaryBoolOp <- ("==" / "<=" / ">=" / "<" / ">")
+
 _ "whitespace" <- [ \n\t\r]*
+__ "obligatory_whitespace" <- [ \n\t\r]+
 
 EOF <- !.
