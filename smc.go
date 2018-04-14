@@ -82,10 +82,20 @@ func (tree Tree) dismember() (Tree, string, Tree) {
 	return *tree.Left, tree.Value, *tree.Right
 }
 
-func resolverSMC(smc SMC, t Tree)SMC{
+func (smc SMC) printSmc() {
+	fmt.Print("<")
+	smc.S.print()
+	fmt.Print(", ")
+	fmt.Print("0")
+	fmt.Print(", ")
+	smc.C.print()
+	fmt.Print(">")
+	fmt.Println()
+}
+
+func resolverSMC(smc SMC)SMC{
 	
-	smc.C = smc.C.push(t)
-	fmt.Println(smc)
+	smc.printSmc()
 		
 	for smc.C.size()>0{
 		
@@ -107,7 +117,8 @@ func resolverSMC(smc SMC, t Tree)SMC{
 			smc.C,_ = smc.C.pop()
 			smc = smc.push_tree(op)
 		}
-		fmt.Println(smc)
+		//fmt.Println(smc)
+		smc.printSmc()
 	}	
 
 	return smc
