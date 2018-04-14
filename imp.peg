@@ -9,8 +9,13 @@
 //
 package main
 
+import "reflect"
+
 var toBPLC = map[string]string{
-	"+":"add",
+	"+": "add",
+    "-": "sub",
+    "*": "mul",
+    "/": "div",
 }
 
 func toIfaceSlice(v interface{}) []interface{} {
@@ -21,14 +26,32 @@ func toIfaceSlice(v interface{}) []interface{} {
 }
 
 func eval(first, rest interface{}) Tree {
-    t := Tree{Left: nil, Value: first.(string), Right: nil}
+    stringType := reflect.TypeOf("string teste")
+    var t Tree
+
+    if (reflect.TypeOf(first) == stringType){
+        t = Tree{Left: nil, Value: first.(string), Right: nil}
+    } else {
+        t = first.(Tree)
+    }
+    
     restSl := toIfaceSlice(rest)
+
     for _, v := range restSl {
         restExpr := toIfaceSlice(v)
-        r := restExpr[3].(string)
+        var rightTree, leftTree Tree
+
+        // Se recebe string da interface, constroi árvore nova, senão pega árvore já construída
+        // do retorno do eval de um Factor 
+        if (reflect.TypeOf(restExpr[3]) == stringType){
+            r := restExpr[3].(string)
+            rightTree = Tree{Left: nil, Value: r, Right: nil}
+        } else {
+            rightTree = restExpr[3].(Tree)
+        }
+
+        leftTree = t
         op := toBPLC[restExpr[1].(string)]
-        rightTree := t
-        leftTree := Tree{Left: nil, Value: r, Right: nil}
         t = Tree{Left: &leftTree, Value: op, Right: &rightTree}
     }
     return t
@@ -41,11 +64,25 @@ Input <- expr:Expr EOF {
     return expr, nil
 }
 
-Expr <- _ first:Integer rest:( _ AddOp _ Integer )* _ {
+Expr <- _ first:Term rest:( _ AddOp _ Term )* _ {
     return eval(first, rest), nil
 }
 
-AddOp <- '+' {
+Term <- first:Factor rest:( _ MulOp _ Factor )* {
+    return eval(first, rest), nil
+}
+
+Factor <- '(' expr:Expr ')' {
+    return expr, nil
+} / integer:Integer {
+    return integer, nil
+}
+
+AddOp <- ('+' / '-' ) {
+    return string(c.text), nil
+}
+
+MulOp <- ( '*' / '/' ) {
     return string(c.text), nil
 }
 

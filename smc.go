@@ -16,6 +16,21 @@ var evaluate = map[string] func(string, string) Tree{
 		e2,_ := strconv.Atoi(op2)	
 		return Tree{Left:nil,Value:strconv.Itoa(e1+e2),Right:nil}
 	},
+	"sub": func (op1 string, op2 string) Tree{
+		e1,_ := strconv.Atoi(op1)
+		e2,_ := strconv.Atoi(op2)	
+		return Tree{Left:nil,Value:strconv.Itoa(e1-e2),Right:nil}
+	},
+	"mul": func (op1 string, op2 string) Tree{
+		e1,_ := strconv.Atoi(op1)
+		e2,_ := strconv.Atoi(op2)	
+		return Tree{Left:nil,Value:strconv.Itoa(e1*e2),Right:nil}
+	},
+	"div": func (op1 string, op2 string) Tree{
+		e1,_ := strconv.Atoi(op1)
+		e2,_ := strconv.Atoi(op2)	
+		return Tree{Left:nil,Value:strconv.Itoa(e1/e2),Right:nil}
+	},
 }
 
 func iniciaSMC() SMC{
@@ -93,8 +108,10 @@ func (smc SMC) printSmc() {
 	fmt.Println()
 }
 
-func resolverSMC(smc SMC)SMC{
+func resolverSMC(smc SMC, t Tree)SMC{
 	
+	smc.C = smc.C.push(t)
+	//fmt.Println(smc)
 	smc.printSmc()
 		
 	for smc.C.size()>0{

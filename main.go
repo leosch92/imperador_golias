@@ -15,6 +15,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	t := got.(Tree)
 
 	fmt.Println("------- CÓDIGO BPLC GERADO ---------")
