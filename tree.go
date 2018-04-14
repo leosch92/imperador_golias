@@ -1,26 +1,31 @@
 package main
 
-import (
-	"fmt"
-	"io"
-	"os"
-)
+const sonsLength = 3
 
 type Tree struct {
-	Left  *Tree
 	Value string
-	Right *Tree
+	Sons  [sonsLength]*Tree
+}
+
+func initSons() [sonsLength]*Tree {
+	var sons [sonsLength]*Tree
+	return sons
 }
 
 func (t Tree) checkIfNode() bool {
-	return (t.Left == nil && t.Right == nil)
+	for _, son := range t.Sons {
+		if son != nil {
+			return false
+		}
+	}
+	return true
 }
 
 func (t Tree) toString() string {
 	return t.Value
 }
 
-func findMinMax(tree *Tree, min *int, max *int, hd int) {
+/*func findMinMax(tree *Tree, min *int, max *int, hd int) {
 	if tree == nil {
 		return
 	}
@@ -33,19 +38,14 @@ func findMinMax(tree *Tree, min *int, max *int, hd int) {
 
 	findMinMax(tree.Left, min, max, hd-1)
 	findMinMax(tree.Right, min, max, hd+1)
+}*/
+
+func (t *Tree) insert(Value string, id int) *Tree {
+	t.Sons[id] = &Tree{Value, initSons()}
+	return t.Sons[id]
 }
 
-func (t *Tree) insertLeft(Value string) *Tree {
-	t.Left = &Tree{nil, Value, nil}
-	return t.Left
-}
-
-func (t *Tree) insertRight(Value string) *Tree {
-	t.Right = &Tree{nil, Value, nil}
-	return t.Right
-}
-
-func printer(w io.Writer, tree *Tree, ns int, ch rune) {
+/*func printer(w io.Writer, tree *Tree, ns int, ch rune) {
 	if tree == nil {
 		return
 	}
@@ -79,4 +79,4 @@ func printBplc(t *Tree) {
 		fmt.Print(")")
 	}
 
-}
+}*/

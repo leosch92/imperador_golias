@@ -1,12 +1,10 @@
+
+//
+// PEG para golang visando a compilação e interpretação de código
+// fonte na linguagem IMP
+//
+
 {
-// Command calculator is a small PEG-generated parser that computes
-// simple math using integers.
-//
-// Example usage: $ calculator "3 + (2 - 5 * 12)"
-//
-// Inspired by pegjs arithmetic example:
-// https://github.com/pegjs/pegjs/blob/master/examples/arithmetics.pegjs
-//
 package main
 
 import "reflect"
@@ -16,6 +14,7 @@ var toBPLC = map[string]string{
     "-": "sub",
     "*": "mul",
     "/": "div",
+    "while": "while",
 }
 
 func toIfaceSlice(v interface{}) []interface{} {
@@ -25,12 +24,12 @@ func toIfaceSlice(v interface{}) []interface{} {
     return v.([]interface{})
 }
 
-func eval(first, rest interface{}) Tree {
+func evalArithExpr(first, rest interface{}) Tree {
     stringType := reflect.TypeOf("string teste")
     var t Tree
 
     if (reflect.TypeOf(first) == stringType){
-        t = Tree{Left: nil, Value: first.(string), Right: nil}
+        t = Tree{first.(string), initSons()}
     } else {
         t = first.(Tree)
     }
@@ -39,24 +38,24 @@ func eval(first, rest interface{}) Tree {
 
     for _, v := range restSl {
         restExpr := toIfaceSlice(v)
-        var rightTree, leftTree Tree
-
-        // Se recebe string da interface, constroi árvore nova, senão pega árvore já construída
-        // do retorno do eval de um Factor 
-        if (reflect.TypeOf(restExpr[3]) == stringType){
-            r := restExpr[3].(string)
-            rightTree = Tree{Left: nil, Value: r, Right: nil}
-        } else {
-            rightTree = restExpr[3].(Tree)
-        }
-
-        leftTree = t
         op := toBPLC[restExpr[1].(string)]
-        t = Tree{Left: &leftTree, Value: op, Right: &rightTree}
+        firstOperand := t.Value
+        t = Tree{op, initSons()}
+        
+        // Se recebe string da interface, constroi árvore nova, senão pega árvore já construída
+        // do retorno do eval de um Factor
+
+        if (reflect.TypeOf(restExpr[3]) == stringType){
+            t.insert(restExpr[3].(string), 1) // Insere o operando da direita no segundo filho
+        } else {
+            secondTree := restExpr[3].(Tree)
+            t.Sons[1] = &secondTree
+        }
+        
+        t.insert(firstOperand, 0)
     }
     return t
 }
-
 
 }
 
@@ -66,20 +65,17 @@ Input <- cmd:Command EOF {
 
 // ATENÇÃO!!! Regra criada especialmente para testes
 // Qualquer programa que você quiser testar é só incluir as regras que você deseja
-// Exemplo: quero testar "5==5", colocar então a regra associada BoolExp no Teste
+// Exemplo: quero testar "5==5", colocar então ponha a regra associada BoolExp no Teste
 // Como BoolExp é uma expressão booleana, ele vai conseguir parsear um programa que contenha
-// uma expressão booleana sozinha, graças a essa regra de teste
-Teste <- BoolExp { 
-    return string(c.text), nil
-}
+// uma expressão booleana sozinha, graças a essa regra de teste. Para adicionar novas regras
+// basta incluir o caractere '/' para começar nova regra, como em casos abaixo
+Teste <- ArithExpr
 
 Command <- Identifier _ ":=" _ Expression {
     return string(c.text), nil
 } / While
 
-While <- "while" __ '(' BoolExp ')' __ "do" _ Block{
-    return string(c.text), nil
-}
+While <- while:"while" __ '(' _ boolExp:BoolExp _ ')' __ "do" _ Block
 
 Block <- '{' _ Command _ '}'
 
@@ -90,14 +86,14 @@ Expression <- ArithExpr /
               BoolExp
 
 ArithExpr <- _ first:Term rest:( _ AddOp _ Term )* _ {
-    return eval(first, rest), nil
+    return evalArithExpr(first, rest), nil
 }
 
 Term <- first:Factor rest:( _ MulOp _ Factor )* {
-    return eval(first, rest), nil
+    return evalArithExpr(first, rest), nil
 }
 
-Factor <- '(' expr:Expr ')' {
+Factor <- '(' expr:ArithExpr ')' {
     return expr, nil
 } / integer:Integer {
     return integer, nil
@@ -119,7 +115,9 @@ Identifier <- [a-zA-Z][0-9a-zA-Z]*
 
 BoolExp <- UnaryBoolOp Identifier /
            Identifier __ BinaryBoolOp __ Identifier /
-           Identifier __ BinaryBoolOp __ ArithExpr
+           Identifier __ BinaryBoolOp __ ArithExpr / 
+           "true" /
+           "false"
 
 UnaryBoolOp <- '~'
 

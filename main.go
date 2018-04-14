@@ -12,7 +12,6 @@ func main() {
 	got, err := ParseFile("program.imp") //strings.NewReader(os.Args[1]))
 	if err != nil {
 		log.Fatal(err)
-		fmt.Println("oi")
 	}
 
 	fmt.Println(got)
