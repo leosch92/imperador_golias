@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 )
 
@@ -14,11 +13,10 @@ func main() {
 		log.Fatal(err)
 	}
 
-	fmt.Println(got)
+	t := *got.(*Tree)
+	printTree(&t)
 
-	/*t := got.(Tree)
-
-	fmt.Println("------- CÓDIGO BPLC GERADO ---------")
+	/*fmt.Println("------- CÓDIGO BPLC GERADO ---------")
 	printBplc(&t)
 
 	fmt.Println("\n\n------- RESOLUÇÃO SMC --------")

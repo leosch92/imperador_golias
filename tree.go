@@ -1,5 +1,11 @@
 package main
 
+import (
+	"fmt"
+	"io"
+	"os"
+)
+
 const sonsLength = 3
 
 type Tree struct {
@@ -12,7 +18,7 @@ func initSons() [sonsLength]*Tree {
 	return sons
 }
 
-func (t Tree) checkIfNode() bool {
+func (t *Tree) checkIfNode() bool {
 	for _, son := range t.Sons {
 		if son != nil {
 			return false
@@ -21,7 +27,7 @@ func (t Tree) checkIfNode() bool {
 	return true
 }
 
-func (t Tree) toString() string {
+func (t *Tree) toString() string {
 	return t.Value
 }
 
@@ -45,7 +51,7 @@ func (t *Tree) insert(Value string, id int) *Tree {
 	return t.Sons[id]
 }
 
-/*func printer(w io.Writer, tree *Tree, ns int, ch rune) {
+func printer(w io.Writer, tree *Tree, ns int, ch rune) {
 	if tree == nil {
 		return
 	}
@@ -54,15 +60,16 @@ func (t *Tree) insert(Value string, id int) *Tree {
 		fmt.Fprint(w, " ")
 	}
 	fmt.Fprintf(w, "%c:%v\n", ch, tree.Value)
-	printer(w, tree.Left, ns+2, 'E')
-	printer(w, tree.Right, ns+2, 'D')
+	printer(w, tree.Sons[0], ns+2, '0')
+	printer(w, tree.Sons[1], ns+2, '1')
+	printer(w, tree.Sons[2], ns+2, '2')
 }
 
 func printTree(tree *Tree) {
 	printer(os.Stdout, tree, 0, 'R')
 }
 
-func printBplc(t *Tree) {
+/*func printBplc(t *Tree) {
 
 	if t == nil {
 		return
