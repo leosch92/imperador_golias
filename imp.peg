@@ -38,28 +38,34 @@ func evalArithExpr(first, rest interface{}) *Tree {
 
     for _, v := range restSl {
         restExpr := toIfaceSlice(v)
-        op := toBPLC[restExpr[1].(string)]
-        firstOperand := t.Value
-        t = Tree{op, initSons()}
+        operator := toBPLC[restExpr[1].(string)]
+        auxTree := t
+        t = Tree{operator, initSons()}
+        
+        t.Sons = append(t.Sons, &auxTree)
         
         // Se recebe string da interface, constroi árvore nova, senão pega árvore já construída
         // do retorno do eval de um Factor
+        rightOp := restExpr[3]
 
-        if (reflect.TypeOf(restExpr[3]) == stringType){
-            t.insert(restExpr[3].(string), 1) // Insere o operando da direita no segundo filho
+        if (reflect.TypeOf(rightOp) == stringType){
+
+            // Insere o operando da direita como novo filho
+            t.Sons = append(t.Sons, &Tree{rightOp.(string), initSons()})
+
         } else {
-            t.Sons[1] = restExpr[3].(*Tree)
+            t.Sons = append(t.Sons, rightOp.(*Tree))
         }
         
-        t.insert(firstOperand, 0)
+        
     }
     return &t
 }
 
 func evalWhile(boolExp, body interface{}) *Tree {
     t := Tree{toBPLC["while"], initSons()}
-    t.Sons[0] = boolExp.(*Tree)
-    t.Sons[1] = body.(*Tree)
+    t.Sons = append(t.Sons, boolExp.(*Tree))
+    t.Sons = append(t.Sons, body.(*Tree))
     return &t
 }
 
