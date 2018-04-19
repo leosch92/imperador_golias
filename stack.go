@@ -1,29 +1,24 @@
 package main
 
-import (
-	"fmt"
-)
+//"fmt"
 
 //Implementação de Struct de Pilha-> utiliza slices para facilitar
-type Stack struct{
-	 data []Tree
+type Stack struct {
+	data []Tree
 }
 
-func (s Stack) push(info Tree) Stack{
+func (s Stack) push(info Tree) Stack {
 	s.data = append(s.data, info)
 	return s
 }
 
-func(s Stack) pop() (Stack,Tree){
-	if len(s.data)==0{
-		return s, *new(Tree)
-	}
-	var info= s.data[len(s.data)-1]
+func (s Stack) pop() (Stack, *Tree) {
+	var info = s.data[len(s.data)-1]
 	s.data = s.data[:len(s.data)-1]
-	return s, info
+	return s, &info
 }
 
-func (s Stack) size() int{
+func (s Stack) size() int {
 	return len(s.data)
 }
 
@@ -33,7 +28,7 @@ func (s Stack) size() int{
 	}
 }*/
 
-func (s Stack) print() {
+/*func (s Stack) print() {
 	l := len(s.data)
 	if l == 0 {
 		fmt.Print("0")
@@ -44,4 +39,4 @@ func (s Stack) print() {
 		fmt.Print(" ")
 		printBplc(&s.data[i])
 	}
-}
+}*/

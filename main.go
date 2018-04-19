@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 )
 
@@ -14,12 +15,12 @@ func main() {
 	}
 
 	t := *got.(*Tree)
-	printTree(&t)
+	//printTree(&t)
 
-	/*fmt.Println("------- CÓDIGO BPLC GERADO ---------")
-	printBplc(&t)
+	/* 	fmt.Println("------- CÓDIGO BPLC GERADO ---------")
+	   	printBplc(&t) */
 
 	fmt.Println("\n\n------- RESOLUÇÃO SMC --------")
-	resolverSMC(iniciaSMC(), t)*/
+	resolverSMC(iniciaSMC(), t)
 
 }
