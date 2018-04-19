@@ -15,6 +15,14 @@ var toBPLC = map[string]string{
     "*": "mul",
     "/": "div",
     "while": "while",
+    "~": "neg",
+    ">=": "ge",
+    ">": "gt",
+    "<=": "le",
+    "<": "lt",
+    "==": "eq",
+    "/\\": "and",
+    "\\/": "or",
 }
 
 func toIfaceSlice(v interface{}) []interface{} {
@@ -69,6 +77,30 @@ func evalWhile(boolExp, body interface{}) *Tree {
     return &t
 }
 
+func evalKeywordBoolExp(keyword interface{}) *Tree{
+    return &Tree{keyword.(string), initSons()}
+}
+
+func evalUnaryBoolExp(unBoolOp, boolExp interface{}) *Tree{
+    t := Tree{toBPLC[unBoolOp.(string)], initSons()}
+    t.Sons = append(t.Sons, boolExp.(*Tree))
+    return &t
+}
+
+func evalBinaryLogicExp(binBoolOp, id1, id2 interface{}) *Tree {
+    t := Tree{toBPLC[binBoolOp.(string)], initSons()}
+    t.Sons = append(t.Sons, &Tree{id1.(string), initSons()})
+    t.Sons = append(t.Sons, &Tree{id2.(string), initSons()})
+    return &t
+}
+
+func evalBinaryArithExp(binBoolOp, id1, id2 interface{}) *Tree {
+    t := Tree{toBPLC[binBoolOp.(string)], initSons()}
+    t.Sons = append(t.Sons, &Tree{id1.(string), initSons()})
+    t.Sons = append(t.Sons, id2.(*Tree))
+    return &t
+}
+
 }
 
 Input <- cmd:Command EOF {
@@ -94,6 +126,7 @@ Command <- Identifier _ ":=" _ Expression {
 While <- "while" __ '(' _ boolExp:BoolExp _ ')' __ "do" _ body:Block {
     return evalWhile(boolExp, body), nil
 }
+
 
 Block <- '{' _ cmd:Command _ '}' {
     return cmd, nil
@@ -131,21 +164,36 @@ Integer <- '-'? [0-9]+ {
     return string(c.text), nil
 }
 
-Identifier <- [a-zA-Z][0-9a-zA-Z]*
+BoolExp <- keyword: KeywordBoolExp {
+    return evalKeywordBoolExp(keyword), nil
+} 
+/ unBoolOp: UnaryBoolOp boolExp: BoolExp {
+    return evalUnaryBoolExp(unBoolOp, boolExp), nil
+}
+/ id1: Identifier _ binBoolOp: BinaryBoolOp _ id2: Identifier {
+    return evalBinaryLogicExp(binBoolOp, id1, id2), nil
+} 
+/ id1: Identifier _ binBoolOp: BinaryBoolOp _ id2:ArithExpr {
+    return evalBinaryArithExp(binBoolOp, id1, id2), nil
+}
 
-BoolExp <- UnaryBoolOp Identifier /
-           Identifier __ BinaryBoolOp __ Identifier /
-           Identifier __ BinaryBoolOp __ ArithExpr / 
-           "true"{
-               return &Tree{"true", initSons()}, nil
-           } /
-           "false"
+KeywordBoolExp <- ("true" / "false") {
+    return string(c.text), nil
+}    
 
-UnaryBoolOp <- '~'
+UnaryBoolOp <- '~'{
+    return string(c.text), nil
+}
 
-BinaryBoolOp <- ("==" / "<=" / ">=" / "<" / ">")
+BinaryBoolOp <- ( "==" / "<=" / ">=" / "<" / ">" / "/\\" / "\\/") {
+    return string(c.text), nil
+}
 
 _ "whitespace" <- [ \n\t\r]*
 __ "obligatory_whitespace" <- [ \n\t\r]+
+
+Identifier <- [a-zA-Z][0-9a-zA-Z]*{
+    return string(c.text), nil
+}
 
 EOF <- !.
