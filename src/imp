@@ -1,0 +1,3 @@
+pigeon -o parser.go imp.peg
+go build main.go parser.go smc.go stack.go tree.go create_bplc.go
+./main "program.imp"
