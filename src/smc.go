@@ -198,12 +198,12 @@ func criaMapa() map[string]func(SMC) SMC {
 			smc.S = smc.S.push(resolveDesigualdade("lt", smc, t1, t2))
 			return smc
 		},
-		"lq": func(smc SMC) SMC {
+		"le": func(smc SMC) SMC {
 			t1 := new(Tree)
 			t2 := new(Tree)
 			smc.S, t1 = smc.S.pop()
 			smc.S, t2 = smc.S.pop()
-			smc.S = smc.S.push(resolveDesigualdade("lq", smc, t1, t2))
+			smc.S = smc.S.push(resolveDesigualdade("le", smc, t1, t2))
 			return smc
 		},
 		"while": func(smc SMC) SMC {
@@ -326,29 +326,23 @@ func (tree Tree) dismember() (string, []*Tree) {
 	return tree.Value, tree.Sons
 }
 
-func printMem(m map[string]string) {
-	for _, v := range m { 
-    fmt.Printf("%s ", v)
-}
-}
-
-func (smc SMC) printSmc() {
+/*func (smc SMC) printSmc() {
 	fmt.Print("<")
 	smc.S.print()
 	fmt.Print(", ")
-	printMem(smc.M)
+	fmt.Print("0")
 	fmt.Print(", ")
 	smc.C.print()
 	fmt.Print(">")
 	fmt.Println()
-}
+}*/
 
 func resolverSMC(smc SMC, t Tree) SMC {
 	evaluate = criaMapa()
 	dismember = criaMapaDismember()
 	smc.C = smc.C.push(t)
-	//fmt.Println(smc)
-	smc.printSmc()
+	fmt.Println(smc)
+	//smc.printSmc()
 	for smc.C.size() > 0 {
 		_, op := smc.C.pop()
 		if op.checkIfNode() {
@@ -366,8 +360,8 @@ func resolverSMC(smc SMC, t Tree) SMC {
 			smc.C, _ = smc.C.pop()
 			smc = smc.push_tree(op)
 		}
-		//fmt.Println(smc)
-		smc.printSmc()
+		fmt.Println(smc)
+		//smc.printSmc()
 	}
 
 	return smc
