@@ -14,9 +14,9 @@ GOBIN=$(GOPATH)/bin
 #MPKG := main
 
 
-default: main
+default: install
 
-main:
+install:
 	echo "Brew will be updated"
 	brew update
 	echo "Go will be installed"
@@ -35,6 +35,18 @@ main:
 	$(GOBUILD) -o=main ./src
 	./main src/program.imp
 
+main:
+	$(GOBIN)/pigeon -o=src/parser.go peg/imp.peg
+	$(GOBUILD) -o=main ./src
+	./main src/program.imp
+
 .PHONY: clean
 clean:
-	rm -r imperador_golias
+	rm main
+	rm src/parser.go
+
+.PHONY: uninstall
+uninstall:
+	rm -r $(GOPATH)
+	brew uninstall golang
+	cd ../; rm -rf imperador_golias
