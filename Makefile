@@ -33,12 +33,12 @@ install:
 	$(GOBIN)/pigeon -o=src/parser.go peg/imp.peg
 	#sh make.sh
 	$(GOBUILD) -o=main ./src
-	./main src/program.imp
+	./main tests/fatorial.imp
 
 main:
 	$(GOBIN)/pigeon -o=src/parser.go peg/imp.peg
 	$(GOBUILD) -o=main ./src
-	./main src/program.imp
+	./main tests/fatorial.imp
 
 .PHONY: clean
 clean:
