@@ -22,20 +22,19 @@ main:
 	echo "Go will be installed"
 	brew install golang
 	echo "Go installed successfully"
-	mkdir $(HOME)/go
-	mkdir $(HOME)/go/bin
+	mkdir -p $(HOME)/go
+	mkdir -p  $(HOME)/go/bin
 	echo "Pigeon will be installed"
 	$(GOGET) -u github.com/mna/pigeon
 	echo "Pigeon instalado"
-	echo "Cloning project into local directory"
-	git clone https://github.com/leosch92/imperador_golias.git
-	echo "Project clone successfully"
-	cd imperador_golias
+	#echo "Cloning project into local directory"
+	#git clone https://github.com/leosch92/imperador_golias.git
+	#echo "Project cloned successfully"
 	$(GOBIN)/pigeon -o=parser.go imp.peg
 	#sh make.sh
 	$(GOBUILD) main.go tree.go stack.go smc.go parser.go
 	./main
 
-.PHONY clean
+.PHONY: clean
 clean:
 	rm -r imperador_golias
