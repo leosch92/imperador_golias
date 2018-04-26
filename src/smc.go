@@ -302,7 +302,7 @@ func (smc SMC) push_tree(tree *Tree) SMC {
 
 func criaMapaDismember() map[string] func(SMC, []*Tree) SMC{
 	var dismember = map[string] func(SMC, []*Tree) SMC{
-		"while:": func (smc SMC, forest []*Tree) SMC{
+		"while": func (smc SMC, forest []*Tree) SMC{
 			smc.C = smc.C.push(Tree{Value:"while", Sons: nil})
 			smc.C = smc.C.push(*forest[0])
 			smc.S = smc.S.push(*forest[1])
