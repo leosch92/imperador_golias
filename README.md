@@ -1,6 +1,8 @@
 # Imperador_golias
 
-<img align="center" src="imperador_golias.png">
+<p align="center">
+  <img src="imperador_golias.png">
+</p>
 
 ![icone Imperador Golias](https://github.com/leosch92/imperador_golias/blob/master/imperador_golias.png)
 
