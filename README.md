@@ -1,6 +1,8 @@
 # Imperador_golias
 
-![icone Imperador Golias](https://github.com/leosch92/imperador_golias/blob/master/imperador_golias.png)
+<p align="center">
+  <img src="imperador_golias.png">
+</p>
 
 Imperador Golias consegue a façanha de compilar E interpretar um código na linguagem imp (ou pelo menos no futuro irá)
 

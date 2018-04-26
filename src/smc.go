@@ -53,16 +53,7 @@ func resolveDesigualdade(typeOf string, smc SMC, forest ...*Tree) Tree {
 	return Tree{Value: BtoA(boolValue), Sons: nil}
 }
 
-var opCtrl = map[string]bool{
-	"while": true,
-	"if":    true,
-	"att":   true,
-	"seq":   true,
-}
-
-var pilhaExp Stack
-var pilhaBloc Stack
-
+var dismember map[string] func(SMC, []*Tree) SMC
 var evaluate map[string]func(SMC) SMC
 
 func criaMapa() map[string]func(SMC) SMC {
@@ -135,7 +126,12 @@ func criaMapa() map[string]func(SMC) SMC {
 			var result = true
 			for i := 0; i < num; i++ {
 				smc.S, t = smc.S.pop()
-				boolValue := (t.toString() == "true")
+				var str = t.toString()
+				value, found := smc.M[str]
+				if (found){ 
+					str = value	
+				}
+				boolValue := (str == "true")
 				result = result && boolValue
 			}
 			smc.S = smc.S.push(Tree{Value: BtoA(result), Sons: nil})
@@ -147,7 +143,12 @@ func criaMapa() map[string]func(SMC) SMC {
 			var result = false
 			for i := 0; i < num; i++ {
 				smc.S, t = smc.S.pop()
-				boolValue := (t.toString() == "true")
+				var str = t.toString()
+				value, found := smc.M[str]
+				if (found){
+					str = value	
+				}
+				boolValue := (str == "true")
 				result = result || boolValue
 			}
 			smc.S = smc.S.push(Tree{Value: BtoA(result), Sons: nil})
@@ -156,8 +157,13 @@ func criaMapa() map[string]func(SMC) SMC {
 		"neg": func(smc SMC) SMC {
 			value := new(Tree)
 			smc.S, value = smc.S.pop()
-			result := !(value.toString() == "true")
-			smc.S = smc.S.push(Tree{Value: BtoA(result), Sons: nil})
+			str := value.toString()
+			boolVal,found := smc.M[str]
+			if (found){
+				str = boolVal	
+			}
+			boolValue := !(str == "true")
+			smc.S = smc.S.push(Tree{Value: BtoA(boolValue), Sons: nil})
 			return smc
 		},
 		"eq": func(smc SMC) SMC {
@@ -201,70 +207,45 @@ func criaMapa() map[string]func(SMC) SMC {
 			return smc
 		},
 		"while": func(smc SMC) SMC {
+			var result = new(Tree)
+			smc.S, result = smc.S.pop()
 			var exp = new(Tree)
 			var bloco = new(Tree)
-			smc.C, exp = smc.C.pop()
-			smc.C, bloco = smc.C.pop()
-			smcResp := iniciaSMC()
-			smcResp.M = smc.M
-			smcResp = resolverSMC(smcResp, *exp)
-			_, resp := smcResp.S.pop()
-			if resp.toString() == "true" {
-				pilhaExp = pilhaExp.push(*exp)
-				pilhaBloc = pilhaBloc.push(*bloco)
-				smc.C = smc.C.push(Tree{Value: "endwhile", Sons: nil})
+			smc.S, exp = smc.S.pop()
+			smc.S, bloco = smc.S.pop()
+			if (result.toString()=="true"){
+				smc.C = smc.C.push(Tree{Value:"while", Sons: append(append(initSons(),exp),bloco)})
 				smc.C = smc.C.push(*bloco)
 			}
-			return smc
-		},
-		"endwhile": func(smc SMC) SMC {
-			var exp *Tree
-			var bloco *Tree
-			pilhaExp, exp = pilhaExp.pop()
-			pilhaBloc, bloco = pilhaBloc.pop()
-			smc.C = smc.C.push(*bloco)
-			smc.C = smc.C.push(*exp)
-			smc.C = smc.C.push(Tree{Value: "while", Sons: nil})
+			
 			return smc
 		},
 		"if": func(smc SMC) SMC {
-			exp := new(Tree)
-			bloco := new(Tree)
-			smc.C, exp = smc.C.pop()
-			smc.C, bloco = smc.C.pop()
-			blkOrEnd := new(Tree)
-			smc.C, blkOrEnd = smc.C.pop()
-			smcResp := iniciaSMC()
-			smcResp.M = smc.M
-			smcResp = resolverSMC(smcResp, *exp)
-			_, treeResp := smcResp.S.pop()
-
-			if !blkOrEnd.checkIfNode() || blkOrEnd.toString() != "endif" {
-				smc.C, _ = smc.C.pop()
+			var result = new(Tree)
+			smc.S, result = smc.S.pop()
+			var blocoIf = new(Tree)
+			var blocoElse = new(Tree)
+			smc.S, blocoIf = smc.S.pop()
+			smc.S, blocoElse = smc.S.pop()
+			if (result.toString()=="true"){
+				smc.C = smc.C.push(*blocoIf)
+			}else{
+				smc.C = smc.C.push(*blocoElse)
 			}
-
-			if treeResp.toString() == "true" {
-				smc.C = smc.C.push(*bloco)
-			} else {
-				if !blkOrEnd.checkIfNode() || blkOrEnd.toString() != "endif" {
-					smc.C = smc.C.push(*blkOrEnd)
-				}
-			}
-
 			return smc
 		},
 		"att": func(smc SMC) SMC {
 			ident := new(Tree)
-			exp := new(Tree)
-			smc.C, ident = smc.C.pop()
-			smc.C, exp = smc.C.pop()
-			smcResp := iniciaSMC()
-			smcResp.M = smc.M
-			_, value := (resolverSMC(smcResp, *exp)).S.pop()
+			value := new(Tree)
+			smc.S, value = smc.S.pop()
+			smc.S, ident = smc.S.pop()
 			smc.M[ident.toString()] = value.toString()
 			return smc
 		},
 		"seq": func(smc SMC) SMC {
+			return smc
+		},
+		"nop": func(smc SMC)SMC{
 			return smc
 		},
 	}
@@ -308,19 +289,37 @@ func printaOperandos(forest []*Tree) {
 
 func (smc SMC) push_tree(tree *Tree) SMC {
 	value, sons := tree.dismember()
-	_, isCtrl := opCtrl[value]
-	if !isCtrl {
-		smc.C = smc.C.push(Tree{Value: value, Sons: nil})
-	} else if value == "if" {
-		smc.C = smc.C.push(Tree{Value: "endif", Sons: nil})
+	funcDismember, isCtrl := dismember[value]
+	if (isCtrl){
+		return funcDismember(smc, sons)
 	}
+	smc.C = smc.C.push(Tree{Value: value, Sons: nil})
 	for i := (len(sons) - 1); i >= 0; i-- {
 		smc.C = smc.C.push(*sons[i])
 	}
-	if isCtrl {
-		smc.C = smc.C.push(Tree{Value: value, Sons: nil})
-	}
 	return smc
+}
+
+func criaMapaDismember() map[string] func(SMC, []*Tree) SMC{
+	var dismember = map[string] func(SMC, []*Tree) SMC{
+		"while": func (smc SMC, forest []*Tree) SMC{
+			smc.C = smc.C.push(Tree{Value:"while", Sons: nil})
+			smc.C = smc.C.push(*forest[0])
+			smc.S = smc.S.push(*forest[1])
+			smc.S = smc.S.push(*forest[0])		
+			return smc
+		},
+		"if": func(smc SMC, forest[]*Tree) SMC{
+			smc.C = smc.C.push(Tree{Value:"if", Sons:nil})
+			smc.C = smc.C.push(*forest[0])
+			smc.S = smc.S.push(*forest[2])
+			smc.S = smc.S.push(*forest[1])
+			return smc
+		},
+		
+		
+	}
+	return dismember;
 }
 
 func (tree Tree) dismember() (string, []*Tree) {
@@ -346,8 +345,7 @@ func (smc SMC) printSmc() {
 
 func resolverSMC(smc SMC, t Tree) SMC {
 	evaluate = criaMapa()
-	pilhaExp = (*new(Stack))
-	pilhaBloc = (*new(Stack))
+	dismember = criaMapaDismember()
 	smc.C = smc.C.push(t)
 	//fmt.Println(smc)
 	smc.printSmc()
