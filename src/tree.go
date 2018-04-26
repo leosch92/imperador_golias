@@ -69,21 +69,30 @@ func printTree(tree *Tree) {
 	printer(os.Stdout, tree, 0, "R")
 }
 
-/*func printBplc(t *Tree) {
+func printBplc(t *Tree) {
 
 	if t == nil {
 		return
 	}
-
-	if (t.Left == nil) && (t.Right == nil) {
+	leaf := true
+	for _, son := range t.Sons {
+		if !(son == nil) {
+			leaf = false
+		}
+	}
+	
+	if leaf {
 		fmt.Print(t.Value)
+		return
 	} else {
 		fmt.Print(t.Value)
 		fmt.Print("(")
-		printBplc(t.Left)
-		fmt.Print(", ")
-		printBplc(t.Right)
+		printBplc(t.Sons[0])
+		for _, son := range t.Sons[1:] {
+			fmt.Print(", ")
+			printBplc(son)
+		}
 		fmt.Print(")")
 	}
 
-}*/
+}

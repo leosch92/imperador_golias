@@ -327,24 +327,30 @@ func (tree Tree) dismember() (string, []*Tree) {
 	return tree.Value, tree.Sons
 }
 
-/*func (smc SMC) printSmc() {
+func printMem(m map[string]string) {
+	for _, v := range m { 
+    fmt.Printf("%s ", v)
+}
+}
+
+func (smc SMC) printSmc() {
 	fmt.Print("<")
 	smc.S.print()
 	fmt.Print(", ")
-	fmt.Print("0")
+	printMem(smc.M)
 	fmt.Print(", ")
 	smc.C.print()
 	fmt.Print(">")
 	fmt.Println()
-}*/
+}
 
 func resolverSMC(smc SMC, t Tree) SMC {
 	evaluate = criaMapa()
 	pilhaExp = (*new(Stack))
 	pilhaBloc = (*new(Stack))
 	smc.C = smc.C.push(t)
-	fmt.Println(smc)
-	//smc.printSmc()
+	//fmt.Println(smc)
+	smc.printSmc()
 	for smc.C.size() > 0 {
 		_, op := smc.C.pop()
 		if op.checkIfNode() {
@@ -362,8 +368,8 @@ func resolverSMC(smc SMC, t Tree) SMC {
 			smc.C, _ = smc.C.pop()
 			smc = smc.push_tree(op)
 		}
-		fmt.Println(smc)
-		//smc.printSmc()
+		//fmt.Println(smc)
+		smc.printSmc()
 	}
 
 	return smc

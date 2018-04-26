@@ -1,6 +1,6 @@
 package main
 
-//"fmt"
+import("fmt")
 
 //Implementação de Struct de Pilha-> utiliza slices para facilitar
 type Stack struct {
@@ -28,7 +28,7 @@ func (s Stack) size() int {
 	}
 }*/
 
-/*func (s Stack) print() {
+func (s Stack) print() {
 	l := len(s.data)
 	if l == 0 {
 		fmt.Print("0")
@@ -39,4 +39,4 @@ func (s Stack) size() int {
 		fmt.Print(" ")
 		printBplc(&s.data[i])
 	}
-}*/
+}
