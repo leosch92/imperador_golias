@@ -21,21 +21,22 @@ func main() {
 		case "-result":
 			fmt.Println("-------- RESULTADO DO PARSER --------")
 			fmt.Println(got)
-		case "-smc":
+		case "-bplc":
+			t = *got.(*Tree)
+			fmt.Println("-------- ÁRVORE BPLC GERADA  --------")
+			printTree(&t)
+		case "-verbose":
 			t = *got.(*Tree)
 			fmt.Println("\n\n------- RESOLUÇÃO SMC --------")
-			resolverSMC(iniciaSMC(), t)
+			resolverSMC(iniciaSMC(), t /*, true*/)
 		default:
 			fmt.Println("Comando não reconhecido.")
 
 		}
 	} else {
-		t = *got.(*Tree)
-		fmt.Println("-------- ÁRVORE BPLC GERADA  --------")
-		printTree(&t)
-
-		//fmt.Println("-------- EXECUÇÃO DO PROGRAMA -------")
-		//Incluir código de execução do programa (com prints)
+		t := *got.(*Tree)
+		fmt.Println("-------- EXECUÇÃO DO PROGRAMA -------")
+		resolverSMC(iniciaSMC(), t /*, false*/)
 	}
 
 	os.Exit(0)
