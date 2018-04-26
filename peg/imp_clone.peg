@@ -1,0 +1,60 @@
+//
+// Clone visando mostrar apenas o valor de retorno do slice de interfaces
+// retornado pelo parser
+//
+
+{
+    package main
+}
+
+Input <- Sequence EOF
+
+Sequence <- Command ( _ Command )*
+
+Command <- While /
+           If /
+           Assignment
+
+Assignment <- Identifier _ ":=" _ Expression _ ';'
+
+While <- "while" __ '(' _ BoolExp _ ')' __ "do" _ Block
+
+If <- "if" _ '(' _ BoolExp _ ')' _ Block _ ("else" _ Block)?
+
+Block <- '{' _ Sequence _ '}'
+
+Expression <- ArithExpr /
+              Identifier /
+              BoolExp
+
+ArithExpr <- Term ( _ AddOp _ Term )*
+
+Term <- Factor ( _ MulOp _ Factor )*
+
+Factor <- '(' expr:ArithExpr ')' 
+           / integer:Integer
+           / id: Identifier
+
+AddOp <- ('+' / '-' )
+
+MulOp <- ( '*' / '/' )
+
+Integer <- '-'? [0-9]+
+
+BoolExp <- KeywordBoolExp /
+           UnaryBoolOp BoolExp / 
+           Identifier _ binBoolOp: BinaryBoolOp _ Identifier / 
+           Identifier _ binBoolOp: BinaryBoolOp _ ArithExpr
+
+KeywordBoolExp <- ("true" / "false")
+
+UnaryBoolOp <- '~'
+
+BinaryBoolOp <- ( "==" / "<=" / ">=" / "<" / ">" / "/\\" / "\\/")
+
+_ "whitespace" <- [ \n\t\r]*
+__ "obligatory_whitespace" <- [ \n\t\r]+
+
+Identifier <- [a-zA-Z][0-9a-zA-Z]*
+
+EOF <- !.

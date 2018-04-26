@@ -1,0 +1,110 @@
+//
+// PEG para golang visando a compilação e interpretação de código
+// fonte na linguagem IMP
+//
+
+{
+    package main
+}
+
+Input <- seq: Sequence EOF {
+    return seq, nil
+}
+
+// ATENÇÃO!!! Regra criada especialmente para testes
+// Qualquer programa que você quiser testar é só incluir as regras que você deseja
+// Exemplo: quero testar "5==5", colocar então ponha a regra associada BoolExp no Teste
+// Como BoolExp é uma expressão booleana, ele vai conseguir parsear um programa que contenha
+// uma expressão booleana sozinha, graças a essa regra de teste. Para adicionar novas regras
+// basta incluir o caractere '/' para começar nova regra, como em casos abaixo
+Teste <- ArithExpr
+
+Sequence <- first:Command rest:( _ Command )* {
+    return evalSequence(first, rest), nil
+}
+
+Command <- While /
+           If /
+           Assignment
+
+Assignment <- id:Identifier _ ":=" _ expr:Expression _ ';' {
+    return evalAssignment(id, expr), nil
+}
+
+While <- "while" __ '(' _ boolExp:BoolExp _ ')' __ "do" _ body:Block {
+    return evalWhile(boolExp, body), nil
+}
+
+If <- "if" _ '(' _ boolExp:BoolExp _ ')' _ ifBody:Block _ elseStatement:("else" _ Block)? {
+    return evalIf(boolExp, ifBody, elseStatement), nil
+}
+
+Block <- '{' _ seq:Sequence _ '}' {
+    return seq, nil
+}
+
+Expression <- ArithExpr /
+              Identifier /
+              BoolExp
+
+ArithExpr <- first:Term rest:( _ AddOp _ Term )* {
+    return evalArithExpr(first, rest), nil
+}
+
+Term <- first:Factor rest:( _ MulOp _ Factor )* {
+    return evalArithExpr(first, rest), nil
+}
+
+Factor <- '(' expr:ArithExpr ')' {
+    return expr, nil
+} / integer:Integer {
+    return integer, nil
+} / id: Identifier {
+    return id, nil
+}
+
+AddOp <- ('+' / '-' ) {
+    return string(c.text), nil
+}
+
+MulOp <- ( '*' / '/' ) {
+    return string(c.text), nil
+}
+
+Integer <- '-'? [0-9]+ {
+    return string(c.text), nil
+}
+
+BoolExp <- keyword: KeywordBoolExp {
+    return evalKeywordBoolExp(keyword), nil
+} 
+/ unBoolOp: UnaryBoolOp boolExp: BoolExp {
+    return evalUnaryBoolExp(unBoolOp, boolExp), nil
+}
+/ id1: Identifier _ binBoolOp: BinaryBoolOp _ id2: Identifier {
+    return evalBinaryLogicExp(binBoolOp, id1, id2), nil
+} 
+/ id1: Identifier _ binBoolOp: BinaryBoolOp _ id2:ArithExpr {
+    return evalBinaryArithExp(binBoolOp, id1, id2), nil
+}
+
+KeywordBoolExp <- ("true" / "false") {
+    return string(c.text), nil
+}    
+
+UnaryBoolOp <- '~'{
+    return string(c.text), nil
+}
+
+BinaryBoolOp <- ( "==" / "<=" / ">=" / "<" / ">" / "/\\" / "\\/") {
+    return string(c.text), nil
+}
+
+_ "whitespace" <- [ \n\t\r]*
+__ "obligatory_whitespace" <- [ \n\t\r]+
+
+Identifier <- [a-zA-Z][0-9a-zA-Z]*{
+    return string(c.text), nil
+}
+
+EOF <- !.
