@@ -7,17 +7,9 @@
     package main
 }
 
-Input <- seq: Sequence EOF {
+Input <- _ seq: Sequence _ EOF {
     return seq, nil
 }
-
-// ATENÇÃO!!! Regra criada especialmente para testes
-// Qualquer programa que você quiser testar é só incluir as regras que você deseja
-// Exemplo: quero testar "5==5", colocar então ponha a regra associada BoolExp no Teste
-// Como BoolExp é uma expressão booleana, ele vai conseguir parsear um programa que contenha
-// uma expressão booleana sozinha, graças a essa regra de teste. Para adicionar novas regras
-// basta incluir o caractere '/' para começar nova regra, como em casos abaixo
-Teste <- ArithExpr
 
 Sequence <- first:Command rest:( _ Command )* {
     return evalSequence(first, rest), nil
