@@ -341,12 +341,14 @@ func (smc SMC) printSmc() {
 	fmt.Println()
 }
 
-func resolverSMC(smc SMC, t Tree) SMC {
+func resolverSMC(smc SMC, t Tree, verbose bool) SMC {
 	evaluate = criaMapa()
 	dismember = criaMapaDismember()
 	smc.C = smc.C.push(t)
+	if verbose {
+		smc.printSmc()
+	}
 	//fmt.Println(smc)
-	smc.printSmc()
 	for smc.C.size() > 0 {
 		_, op := smc.C.pop()
 		if op.checkIfNode() {
@@ -365,7 +367,9 @@ func resolverSMC(smc SMC, t Tree) SMC {
 			smc = smc.push_tree(op)
 		}
 		//fmt.Println(smc)
-		smc.printSmc()
+		if verbose {
+			smc.printSmc()
+		}
 	}
 
 	return smc

@@ -28,7 +28,7 @@ func main() {
 		case "-verbose":
 			t = *got.(*Tree)
 			fmt.Println("\n\n------- RESOLUÇÃO SMC --------")
-			resolverSMC(iniciaSMC(), t /*, true*/)
+			resolverSMC(iniciaSMC(), t, true)
 		default:
 			fmt.Println("Comando não reconhecido.")
 
@@ -36,7 +36,7 @@ func main() {
 	} else {
 		t := *got.(*Tree)
 		fmt.Println("-------- EXECUÇÃO DO PROGRAMA -------")
-		resolverSMC(iniciaSMC(), t /*, false*/)
+		resolverSMC(iniciaSMC(), t, false)
 	}
 
 	os.Exit(0)

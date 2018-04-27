@@ -38,6 +38,11 @@ install:
 	$(GOBUILD) -o=main ./src
 	./main tests/fatorial.imp
 
+bare:
+	$(GOBIN)/pigeon -o=src/parser.go peg/imp.peg
+	$(GOBUILD) -o=main ./src
+	#./main tests/fatorial.imp
+
 fatorial:
 	$(GOBIN)/pigeon -o=src/parser.go peg/imp.peg
 	$(GOBUILD) -o=main ./src
