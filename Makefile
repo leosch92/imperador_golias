@@ -17,6 +17,9 @@ GOBIN=$(GOPATH)/bin
 default: install
 
 install:
+	#echo "Homebrew will be installed"
+	#/usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+	#echo "Homebrew installed successfully"
 	echo "Brew will be updated"
 	brew update
 	echo "Go will be installed"
