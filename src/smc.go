@@ -328,14 +328,14 @@ func (tree Tree) dismember() (string, []*Tree) {
 
 func printMap(m map[string]string) {
 	for _, v := range m { 
-    	fmt.Printf("%s ", v)
+    	fmt.Printf(" %s", v)
 	}
 }
 
 func (smc SMC) printSmc() {
 	fmt.Print("<")
 	smc.S.print()
-	fmt.Print(", ")
+	fmt.Print(",")
 	printMap(smc.M)
 	fmt.Print(", ")
 	smc.C.print()
