@@ -59,5 +59,5 @@ clean:
 .PHONY: uninstall
 uninstall:
 	rm -r $(GOPATH)
-	brew uninstall golang
+	brew uninstall go
 	cd ../; rm -rf imperador_golias
