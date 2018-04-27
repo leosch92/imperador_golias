@@ -245,7 +245,7 @@ func criaMapa() map[string]func(SMC) SMC {
 		"seq": func(smc SMC) SMC {
 			return smc
 		},
-		"nop": func(smc SMC)SMC{
+		"noop": func(smc SMC)SMC{
 			return smc
 		},
 	}
