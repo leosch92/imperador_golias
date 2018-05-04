@@ -1,13 +1,15 @@
 dir=tests
 cd $dir
-dirlist=(`ls -B *.imp | sed -e 's/\..*$//'`)
+dirlist=( `ls -B *.imp | sed -e 's/\..*$//'` )
 #fcount='ls -B *.imp | wc - 1'
+echo "Programas encontrados:"
 for file in ${dirlist[*]}
 do
   echo $file
 done
 cd ../
-read -p "Qual programa deseja executar?" op
+echo 'Qual programa deseja executar?'
+read op
 for file in ${dirlist[*]}
 do
   if [ "$file" == "$op" ]
