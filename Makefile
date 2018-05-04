@@ -34,7 +34,6 @@ install:
 	#git clone https://github.com/leosch92/imperador_golias.git
 	#echo "Project cloned successfully"
 	$(GOBIN)/pigeon -o=src/parser.go peg/imp.peg
-	#sh make.sh
 	$(GOBUILD) -o=main ./src
 	sh run.sh
 
