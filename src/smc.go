@@ -6,6 +6,7 @@ import (
 )
 
 type SMC struct {
+	E map[string]string
 	S Stack
 	M map[string]string
 	C Stack
@@ -56,6 +57,38 @@ func resolveDesigualdade(typeOf string, smc SMC, forest ...*Tree) Tree {
 var dismember map[string]func(SMC, []*Tree) SMC
 var evaluate map[string]func(SMC) SMC
 
+func memFindNext(memory map[string]string) int {
+	max := 0
+	for k, _ := range memory {
+		kv, _ := strconv.Atoi(k)
+		if max >= kv {
+			max = kv
+		}
+	}
+	return max + 1
+}
+
+func toMemory(ident *Tree, val *Tree, smc SMC) int {
+	/*"att": func(smc SMC) SMC {
+		ident := new(Tree)
+		value := new(Tree)
+		smc.S, value = smc.S.pop()
+		smc.S, ident = smc.S.pop()
+		smc.M[ident.toString()] = value.toString()
+		return smc
+	}*/
+	l := memFindNext(smc.M)
+	smc.E[ident.toString()] = strconv.Itoa(l)
+	smc.M[strconv.Itoa(l)] = val.toString()
+	return l
+}
+
+func findValue(ident *Tree, smc SMC) string {
+	l := smc.E[ident.toString()]
+	val := smc.M[l]
+	return val
+}
+
 func criaMapa() map[string]func(SMC) SMC {
 	var evaluate = map[string]func(SMC) SMC{
 		"add": func(smc SMC) SMC {
@@ -66,7 +99,8 @@ func criaMapa() map[string]func(SMC) SMC {
 				smc.S, t = smc.S.pop()
 				value, err := strconv.Atoi(t.toString())
 				if err != nil {
-					value, _ = strconv.Atoi(smc.M[t.toString()])
+					/*value, _ = strconv.Atoi(smc.M[t.toString()])*/
+					value, _ = strconv.Atoi(findValue(t, smc))
 				}
 				sum += value
 			}
@@ -80,11 +114,13 @@ func criaMapa() map[string]func(SMC) SMC {
 			smc.S, t0 = smc.S.pop()
 			value0, err0 := strconv.Atoi(t0.toString())
 			if err0 != nil {
-				value0, _ = strconv.Atoi(smc.M[t0.toString()])
+				/*value0, _ = strconv.Atoi(smc.M[t0.toString()])*/
+				value0, _ = strconv.Atoi(findValue(t0, smc))
 			}
 			value1, err1 := strconv.Atoi(t1.toString())
 			if err1 != nil {
-				value1, _ = strconv.Atoi(smc.M[t1.toString()])
+				/*value1, _ = strconv.Atoi(smc.M[t1.toString()])*/
+				value1, _ = strconv.Atoi(findValue(t1, smc))
 			}
 			smc.S = smc.S.push(Tree{Value: strconv.Itoa(value0 - value1), Sons: nil})
 			return smc
@@ -97,7 +133,8 @@ func criaMapa() map[string]func(SMC) SMC {
 				smc.S, t = smc.S.pop()
 				value, err := strconv.Atoi(t.toString())
 				if err != nil {
-					value, _ = strconv.Atoi(smc.M[t.toString()])
+					/*value, _ = strconv.Atoi(smc.M[t.toString()])*/
+					value, _ = strconv.Atoi(findValue(t, smc))
 				}
 				product *= value
 			}
@@ -111,11 +148,13 @@ func criaMapa() map[string]func(SMC) SMC {
 			smc.S, t0 = smc.S.pop()
 			value0, err0 := strconv.Atoi(t0.toString())
 			if err0 != nil {
-				value0, _ = strconv.Atoi(smc.M[t0.toString()])
+				/*value0, _ = strconv.Atoi(smc.M[t0.toString()])*/
+				value0, _ = strconv.Atoi(findValue(t0, smc))
 			}
 			value1, err1 := strconv.Atoi(t1.toString())
 			if err1 != nil {
-				value1, _ = strconv.Atoi(smc.M[t1.toString()])
+				/*value1, _ = strconv.Atoi(smc.M[t1.toString()])*/
+				value1, _ = strconv.Atoi(findValue(t1, smc))
 			}
 			smc.S = smc.S.push(Tree{Value: strconv.Itoa(value0 / value1), Sons: nil})
 			return smc
@@ -239,7 +278,8 @@ func criaMapa() map[string]func(SMC) SMC {
 			value := new(Tree)
 			smc.S, value = smc.S.pop()
 			smc.S, ident = smc.S.pop()
-			smc.M[ident.toString()] = value.toString()
+			/*smc.M[ident.toString()] = value.toString()*/
+			toMemory(ident, value, smc)
 			return smc
 		},
 		"seq": func(smc SMC) SMC {
