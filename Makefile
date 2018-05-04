@@ -34,27 +34,13 @@ install:
 	#git clone https://github.com/leosch92/imperador_golias.git
 	#echo "Project cloned successfully"
 	$(GOBIN)/pigeon -o=src/parser.go peg/imp.peg
-	#sh make.sh
 	$(GOBUILD) -o=main ./src
-	./main tests/fatorial.imp
+	sh run.sh
 
-bare:
+main:
 	$(GOBIN)/pigeon -o=src/parser.go peg/imp.peg
 	$(GOBUILD) -o=main ./src
-	#./main tests/fatorial.imp
-
-fatorial:
-	$(GOBIN)/pigeon -o=src/parser.go peg/imp.peg
-	$(GOBUILD) -o=main ./src
-	./main tests/fatorial.imp
-pa1:
-	$(GOBIN)/pigeon -o=src/parser.go peg/imp.peg
-	$(GOBUILD) -o=main ./src
-	./main tests/pa_soma_n_termos.imp
-pa2:
-	$(GOBIN)/pigeon -o=src/parser.go peg/imp.peg
-	$(GOBUILD) -o=main ./src
-	./main tests/pa_soma_n_termos2.imp
+	sh run.sh
 
 .PHONY: clean
 clean:
