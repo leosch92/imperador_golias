@@ -294,6 +294,7 @@ func criaMapa() map[string]func(SMC) SMC {
 
 func iniciaSMC() SMC {
 	var smc = *new(SMC)
+	smc.E = make(map[string]string)
 	smc.M = make(map[string]string)
 	return smc
 }
