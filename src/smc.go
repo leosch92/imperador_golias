@@ -61,7 +61,7 @@ func memFindNext(memory map[string]string) int {
 	max := 0
 	for k, _ := range memory {
 		kv, _ := strconv.Atoi(k)
-		if max >= kv {
+		if kv >= max {
 			max = kv
 		}
 	}
@@ -69,14 +69,6 @@ func memFindNext(memory map[string]string) int {
 }
 
 func toMemory(ident *Tree, val *Tree, smc SMC) int {
-	/*"att": func(smc SMC) SMC {
-		ident := new(Tree)
-		value := new(Tree)
-		smc.S, value = smc.S.pop()
-		smc.S, ident = smc.S.pop()
-		smc.M[ident.toString()] = value.toString()
-		return smc
-	}*/
 	l := memFindNext(smc.M)
 	smc.E[ident.toString()] = strconv.Itoa(l)
 	smc.M[strconv.Itoa(l)] = val.toString()
@@ -373,6 +365,8 @@ func printMap(m map[string]string) {
 
 func (smc SMC) printSmc() {
 	fmt.Print("<")
+	printMap(smc.E)
+	fmt.Print(", ")
 	smc.S.print()
 	fmt.Print(",")
 	printMap(smc.M)
