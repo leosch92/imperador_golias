@@ -68,11 +68,20 @@ func memFindNext(memory map[string]string) int {
 	return max + 1
 }
 
-func toMemory(ident *Tree, val *Tree, smc SMC) int {
+func toMemory(ident *Tree, val *Tree, smc SMC) SMC {
 	l := memFindNext(smc.M)
 	smc.E[ident.toString()] = strconv.Itoa(l)
 	smc.M[strconv.Itoa(l)] = val.toString()
-	return l
+	return smc
+}
+
+func changeMemory(ident *Tree, val *Tree, smc SMC) (SMC, bool){
+	l, err := smc.E[ident.toString()]
+	if err{
+		return smc, false
+	}
+	smc.M[l] = val.toString()
+	return smc, true
 }
 
 func findValue(ident *Tree, smc SMC) string {
@@ -270,8 +279,11 @@ func criaMapa() map[string]func(SMC) SMC {
 			value := new(Tree)
 			smc.S, value = smc.S.pop()
 			smc.S, ident = smc.S.pop()
-			/*smc.M[ident.toString()] = value.toString()*/
-			toMemory(ident, value, smc)
+			var found bool
+			smc, found = changeMemory(ident, value, smc)
+			if !found{
+				println("Referência não encontrada")
+			}
 			return smc
 		},
 		"seq": func(smc SMC) SMC {
@@ -279,6 +291,13 @@ func criaMapa() map[string]func(SMC) SMC {
 		},
 		"noop": func(smc SMC) SMC {
 			return smc
+		},
+		"ass": func(smc SMC) SMC{
+			ident := new(Tree)
+			value := new(Tree)
+			smc.S, value = smc.S.pop()
+			smc.S, ident = smc.S.pop()
+			return toMemory(ident, value, smc) 
 		},
 	}
 	return evaluate
