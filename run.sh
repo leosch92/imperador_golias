@@ -10,6 +10,10 @@ done
 cd ../
 echo 'Qual programa deseja executar?'
 read op
+if [ "$op" == "exit" ] 
+then
+    exit 0;
+fi
 for file in ${dirlist[*]}
 do
   if [ "$file" == "$op" ]
