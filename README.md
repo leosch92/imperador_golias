@@ -8,11 +8,12 @@ Imperador Golias consegue a façanha de compilar E interpretar um código na lin
 
 
 Instruções (pt-BR):  
-* Instalação - MacOS: para instalar Imperador Golias e todas as suas dependências, e rodar o projeto, é necessário ter o Homebrew instalado, então basta digitar `make` no terminal, na pasta onde está localizado o projeto.  
-* Compilar e rodar - Linux/MacOS: já tendo todas as dependências (Go e Pigeon) instaladas, basta digitar `make {nome_do_arquivo}` no terminal, na pasta onde o projeto está localizado. Substituir {nome\_do\_arquivo} pelo nome do arquivo desejado, em /testes.  
-    * fatorial.imp: fatorial (padrão: 5!)
-    * pa\_soma\_n\_termos: soma dos n termos em uma progressão aritimética, iterativo (padrão: 10)
-    * pa\_soma\_n\_termos2: soma dos n termos em uma progressão aritimética, por fórmula (padrão: 9)
+* Instalação - MacOS: para instalar Imperador Golias e todas as suas dependências, e rodar o projeto, é necessário ter o Homebrew instalado. Após confirmar que o Homebrew está presente, siga esses passos:
+  * Do terminal, navega até o diretório em que deseja instalar o projeto  
+  * Digite `git clone https://github.com/leosch92/imperador_golias.git` e dê enter. Será criada uma nova pasta neste diretório, chamada "imperador_golias", contendo todos os arquivos do projeto.  
+  * Digite `cd imperador_golias`, e dê enter.
+  * Digite `make` e dê enter. Todas as dependências serão baixadas e instaladas, e ao final o programa fornecerá uma lista de arquivos \*.imp presentes, e solicitará que escolha um para testar. Digite o nome do programa, ou `exit` para sair.
+* Compilar e rodar - Linux/MacOS: já tendo todas as dependências (Go e Pigeon) instaladas, basta digitar `make main` no terminal, na pasta onde o projeto está localizado. O programa fornecerá uma lista de programas *imp* presentes e solicitará que escolhe um deles para rodar. Digite o nome do programa e dê enter para rodar um programa, ou `exit` para sair.
 * Limpar arquivos gerados - Linux/MacOS: digite `make clean` no terminal, na pasta onde o projeto se encontra.  
 * Deinstalar projeto e todas as suas dependências - MacOS: desde que Imperador Golias tenha sido instalado de acordo com as instruções providenciadas nesse arquivo, basta usar `make uninstall` no terminal, na pasta em que o projeto se encontra.  
 
