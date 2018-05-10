@@ -6,7 +6,8 @@ GOTEST=$(GOCMD) test
 GODEP=$(GOTEST) -i
 GOFMT=gofmt -w
 GOGET=$(GOCMD) get
-GOPATH=$(HOME)/go
+#GOPATH=$(HOME)/go
+GOPATH=$(HOME)/Programming/Go
 GOBIN=$(GOPATH)/bin
 
 #Packages
