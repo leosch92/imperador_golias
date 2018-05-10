@@ -7,7 +7,7 @@ import (
 
 type SMC struct {
 	E map[string]string
-	S Stack
+	S GenericStack
 	M map[string]string
 	C Stack
 }
@@ -23,7 +23,7 @@ func BtoA(boolValue bool) string {
 	return resultStr
 }
 
-func resolveDesigualdade(typeOf string, smc SMC, forest ...*Tree) Tree {
+func resolveDesigualdade(typeOf string, smc SMC, forest ...*Tree) *Tree {
 	value1, err1 := strconv.Atoi(forest[0].toString())
 	value0, err0 := strconv.Atoi(forest[1].toString())
 	if err0 != nil {
@@ -51,7 +51,7 @@ func resolveDesigualdade(typeOf string, smc SMC, forest ...*Tree) Tree {
 		boolValue = (value0 < value1)
 		break
 	}
-	return Tree{Value: BtoA(boolValue), Sons: nil}
+	return &Tree{Value: BtoA(boolValue), Sons: nil}
 }
 
 var dismember map[string]func(SMC, []*Tree) SMC
@@ -89,6 +89,33 @@ func findValue(ident *Tree, smc SMC) string {
 	return val
 }
 
+func getTreeFromValueStack(smc SMC) (SMC,*Tree){
+	var genericInfo interface{}
+	var typeOfGenericInfo string
+	smc.S, genericInfo, typeOfGenericInfo = smc.S.pop()
+	
+	if typeOfGenericInfo != "*main.Tree"{
+		panic("Erro inesperado")	
+	}
+	var tree = new(Tree)
+	tree = (genericInfo).(*Tree)
+	return smc, tree
+}
+
+func getEnviromentFromValueStack(smc SMC) (SMC, map[string]string){
+	var genericInfo interface{}
+	var typeOfGenericInfo string
+	smc.S, genericInfo, typeOfGenericInfo = smc.S.pop()
+	
+	if typeOfGenericInfo != "map[string]string"{
+		println(typeOfGenericInfo)
+		panic("Erro inesperado")	
+	}
+	var enviroment = genericInfo.(map[string]string)
+	return smc, enviroment
+}
+
+
 func criaMapa() map[string]func(SMC) SMC {
 	var evaluate = map[string]func(SMC) SMC{
 		"add": func(smc SMC) SMC {
@@ -96,32 +123,33 @@ func criaMapa() map[string]func(SMC) SMC {
 			var t = new(Tree)
 			var sum = 0
 			for i := 0; i < num; i++ {
-				smc.S, t = smc.S.pop()
+				smc, t = getTreeFromValueStack(smc)
 				value, err := strconv.Atoi(t.toString())
 				if err != nil {
+					//value, _ = strconv.Atoi(smc.M[t.toString()])
 					value, _ = strconv.Atoi(findValue(t, smc))
 				}
 				sum += value
 			}
-			smc.S = smc.S.push(Tree{Value: strconv.Itoa(sum), Sons: nil})
+			smc.S = smc.S.push(&Tree{Value: strconv.Itoa(sum), Sons: nil})
 			return smc
 		},
 		"sub": func(smc SMC) SMC {
 			var t1 *(Tree)
 			var t0 *(Tree)
-			smc.S, t1 = smc.S.pop()
-			smc.S, t0 = smc.S.pop()
+			smc, t1 = getTreeFromValueStack(smc)
+			smc, t0 = getTreeFromValueStack(smc)
 			value0, err0 := strconv.Atoi(t0.toString())
 			if err0 != nil {
-				/*value0, _ = strconv.Atoi(smc.M[t0.toString()])*/
+				//value0, _ = strconv.Atoi(smc.M[t0.toString()])
 				value0, _ = strconv.Atoi(findValue(t0, smc))
 			}
 			value1, err1 := strconv.Atoi(t1.toString())
 			if err1 != nil {
-				/*value1, _ = strconv.Atoi(smc.M[t1.toString()])*/
+				//value1, _ = strconv.Atoi(smc.M[t1.toString()])
 				value1, _ = strconv.Atoi(findValue(t1, smc))
 			}
-			smc.S = smc.S.push(Tree{Value: strconv.Itoa(value0 - value1), Sons: nil})
+			smc.S = smc.S.push(&Tree{Value: strconv.Itoa(value0 - value1), Sons: nil})
 			return smc
 		},
 		"mul": func(smc SMC) SMC {
@@ -129,33 +157,33 @@ func criaMapa() map[string]func(SMC) SMC {
 			var t = new(Tree)
 			var product = 1
 			for i := 0; i < num; i++ {
-				smc.S, t = smc.S.pop()
+				smc, t = getTreeFromValueStack(smc)
 				value, err := strconv.Atoi(t.toString())
 				if err != nil {
-					/*value, _ = strconv.Atoi(smc.M[t.toString()])*/
+					//value, _ = strconv.Atoi(smc.M[t.toString()])
 					value, _ = strconv.Atoi(findValue(t, smc))
 				}
 				product *= value
 			}
-			smc.S = smc.S.push(Tree{Value: strconv.Itoa(product), Sons: nil})
+			smc.S = smc.S.push(&Tree{Value: strconv.Itoa(product), Sons: nil})
 			return smc
 		},
 		"div": func(smc SMC) SMC {
 			var t1 *(Tree)
 			var t0 *(Tree)
-			smc.S, t1 = smc.S.pop()
-			smc.S, t0 = smc.S.pop()
+			smc, t1 = getTreeFromValueStack(smc)
+			smc, t0 = getTreeFromValueStack(smc)
 			value0, err0 := strconv.Atoi(t0.toString())
 			if err0 != nil {
-				/*value0, _ = strconv.Atoi(smc.M[t0.toString()])*/
+				//value0, _ = strconv.Atoi(smc.M[t0.toString()])
 				value0, _ = strconv.Atoi(findValue(t0, smc))
 			}
 			value1, err1 := strconv.Atoi(t1.toString())
 			if err1 != nil {
-				/*value1, _ = strconv.Atoi(smc.M[t1.toString()])*/
+				//value1, _ = strconv.Atoi(smc.M[t1.toString()])
 				value1, _ = strconv.Atoi(findValue(t1, smc))
 			}
-			smc.S = smc.S.push(Tree{Value: strconv.Itoa(value0 / value1), Sons: nil})
+			smc.S = smc.S.push(&Tree{Value: strconv.Itoa(value0 / value1), Sons: nil})
 			return smc
 		},
 		"and": func(smc SMC) SMC {
@@ -163,16 +191,16 @@ func criaMapa() map[string]func(SMC) SMC {
 			var t = new(Tree)
 			var result = true
 			for i := 0; i < num; i++ {
-				smc.S, t = smc.S.pop()
+				smc, t = getTreeFromValueStack(smc)
 				var str = t.toString()
-				//value, found := smc.M[str]
-				//if found {
-				//	str = value
-				//}
+				value, found := smc.M[str]
+				if found {
+					str = value
+				}
 				boolValue := (str == "true")
 				result = result && boolValue
 			}
-			smc.S = smc.S.push(Tree{Value: BtoA(result), Sons: nil})
+			smc.S = smc.S.push(&Tree{Value: BtoA(result), Sons: nil})
 			return smc
 		},
 		"or": func(smc SMC) SMC {
@@ -180,7 +208,7 @@ func criaMapa() map[string]func(SMC) SMC {
 			var t = new(Tree)
 			var result = false
 			for i := 0; i < num; i++ {
-				smc.S, t = smc.S.pop()
+				smc, t = getTreeFromValueStack(smc)
 				var str = t.toString()
 				value, found := smc.M[str]
 				if found {
@@ -189,68 +217,70 @@ func criaMapa() map[string]func(SMC) SMC {
 				boolValue := (str == "true")
 				result = result || boolValue
 			}
-			smc.S = smc.S.push(Tree{Value: BtoA(result), Sons: nil})
+			smc.S = smc.S.push(&Tree{Value: BtoA(result), Sons: nil})
 			return smc
 		},
 		"neg": func(smc SMC) SMC {
 			value := new(Tree)
-			smc.S, value = smc.S.pop()
+			smc, value = getTreeFromValueStack(smc)
 			str := value.toString()
 			boolVal, found := smc.M[str]
 			if found {
 				str = boolVal
 			}
 			boolValue := !(str == "true")
-			smc.S = smc.S.push(Tree{Value: BtoA(boolValue), Sons: nil})
+			smc.S = smc.S.push(&Tree{Value: BtoA(boolValue), Sons: nil})
 			return smc
 		},
 		"eq": func(smc SMC) SMC {
 			t1 := new(Tree)
 			t2 := new(Tree)
-			smc.S, t1 = smc.S.pop()
-			smc.S, t2 = smc.S.pop()
+			smc, t1 = getTreeFromValueStack(smc)
+			smc, t2 = getTreeFromValueStack(smc)
 			smc.S = smc.S.push(resolveDesigualdade("eq", smc, t1, t2))
 			return smc
 		},
 		"gt": func(smc SMC) SMC {
 			t1 := new(Tree)
 			t2 := new(Tree)
-			smc.S, t1 = smc.S.pop()
-			smc.S, t2 = smc.S.pop()
+			smc, t1 = getTreeFromValueStack(smc)
+			smc, t2 = getTreeFromValueStack(smc)
 			smc.S = smc.S.push(resolveDesigualdade("gt", smc, t1, t2))
 			return smc
 		},
 		"ge": func(smc SMC) SMC {
 			t1 := new(Tree)
 			t2 := new(Tree)
-			smc.S, t1 = smc.S.pop()
-			smc.S, t2 = smc.S.pop()
+			smc, t1 = getTreeFromValueStack(smc)
+			smc, t2 = getTreeFromValueStack(smc)
 			smc.S = smc.S.push(resolveDesigualdade("gq", smc, t1, t2))
 			return smc
 		},
 		"lt": func(smc SMC) SMC {
 			t1 := new(Tree)
 			t2 := new(Tree)
-			smc.S, t1 = smc.S.pop()
-			smc.S, t2 = smc.S.pop()
+			smc, t1 = getTreeFromValueStack(smc)
+			smc, t2 = getTreeFromValueStack(smc)
 			smc.S = smc.S.push(resolveDesigualdade("lt", smc, t1, t2))
 			return smc
 		},
 		"le": func(smc SMC) SMC {
 			t1 := new(Tree)
 			t2 := new(Tree)
-			smc.S, t1 = smc.S.pop()
-			smc.S, t2 = smc.S.pop()
+			smc, t1 = getTreeFromValueStack(smc)
+			smc, t2 = getTreeFromValueStack(smc)
 			smc.S = smc.S.push(resolveDesigualdade("le", smc, t1, t2))
 			return smc
 		},
 		"while": func(smc SMC) SMC {
 			var result = new(Tree)
-			smc.S, result = smc.S.pop()
+			var holdInterface interface{}
+			smc.S, holdInterface, _ = smc.S.pop()
+			result = holdInterface.(*Tree)
 			var exp = new(Tree)
 			var bloco = new(Tree)
-			smc.S, exp = smc.S.pop()
-			smc.S, bloco = smc.S.pop()
+			smc, exp = getTreeFromValueStack(smc)
+			smc, bloco = getTreeFromValueStack(smc)
 			if result.toString() == "true" {
 				smc.C = smc.C.push(Tree{Value: "while", Sons: append(append(initSons(), exp), bloco)})
 				smc.C = smc.C.push(*bloco)
@@ -259,11 +289,11 @@ func criaMapa() map[string]func(SMC) SMC {
 		},
 		"if": func(smc SMC) SMC {
 			var result = new(Tree)
-			smc.S, result = smc.S.pop()
+			smc, result = getTreeFromValueStack(smc)
 			var blocoIf = new(Tree)
 			var blocoElse = new(Tree)
-			smc.S, blocoIf = smc.S.pop()
-			smc.S, blocoElse = smc.S.pop()
+			smc, blocoIf = getTreeFromValueStack(smc)
+			smc, blocoElse = getTreeFromValueStack(smc)
 			if result.toString() == "true" {
 				smc.C = smc.C.push(*blocoIf)
 			} else {
@@ -274,8 +304,9 @@ func criaMapa() map[string]func(SMC) SMC {
 		"ass": func(smc SMC) SMC {
 			ident := new(Tree)
 			value := new(Tree)
-			smc.S, value = smc.S.pop()
-			smc.S, ident = smc.S.pop()
+			smc, value = getTreeFromValueStack(smc)
+			smc, ident = getTreeFromValueStack(smc)
+			//smc.M[ident.toString()] = value.toString()
 			var found bool
 			smc, found = changeValueInMemory(ident, value, smc)
 			if !found{
@@ -291,10 +322,13 @@ func criaMapa() map[string]func(SMC) SMC {
 		},
 		"dec": func(smc SMC) SMC{
 			ident := new(Tree)
-			smc.S, ident = smc.S.pop()
+			smc, ident = getTreeFromValueStack(smc)
 			return createInMemory(ident, smc) 
 		},
 		"block": func(smc SMC) SMC{
+			var enviroment map[string]string
+			smc, enviroment = getEnviromentFromValueStack(smc)
+			smc.E = enviroment
 			return smc	
 		},
 	}
@@ -310,9 +344,9 @@ func iniciaSMC() SMC {
 
 //Função En equivale à (S,M,nC)=>(nS,M,C), isto é o valor é transferido da pilha C para a pilha S
 func (smc SMC) En() SMC {
-	var dado = (new(Tree))
+	var dado = new(Tree)
 	smc.C, dado = smc.C.pop()
-	smc.S = smc.S.push(*dado)
+	smc.S = smc.S.push(dado)
 	return smc
 }
 
@@ -355,15 +389,27 @@ func criaMapaDismember() map[string]func(SMC, []*Tree) SMC {
 		"while": func(smc SMC, forest []*Tree) SMC {
 			smc.C = smc.C.push(Tree{Value: "while", Sons: nil})
 			smc.C = smc.C.push(*forest[0])
-			smc.S = smc.S.push(*forest[1])
-			smc.S = smc.S.push(*forest[0])
+			smc.S = smc.S.push(forest[1])
+			smc.S = smc.S.push(forest[0])
 			return smc
 		},
 		"if": func(smc SMC, forest []*Tree) SMC {
 			smc.C = smc.C.push(Tree{Value: "if", Sons: nil})
 			smc.C = smc.C.push(*forest[0])
-			smc.S = smc.S.push(*forest[2])
-			smc.S = smc.S.push(*forest[1])
+			smc.S = smc.S.push(forest[2])
+			smc.S = smc.S.push(forest[1])
+			return smc
+		},
+		"block": func(smc SMC, forest[]*Tree) SMC{
+			smc.C = smc.C.push(Tree{Value: "block", Sons: nil})
+			for i := (len(forest) - 1); i >= 0; i-- {
+				smc.C = smc.C.push(*forest[i])
+			}
+			var copyOfEnviroment map[string]string
+			for key, value := range smc.M {
+				copyOfEnviroment[key] = value
+	     	}
+			smc.S = smc.S.push(copyOfEnviroment) 
 			return smc
 		},
 	}
@@ -394,6 +440,7 @@ func (smc SMC) printSmc() {
 }
 
 func resolverSMC(smc SMC, t Tree, verbose bool) SMC {
+	
 	evaluate = criaMapa()
 	dismember = criaMapaDismember()
 	smc.C = smc.C.push(t)
