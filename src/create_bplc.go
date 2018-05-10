@@ -93,7 +93,7 @@ func evalBinaryArithExp(binBoolOp, id1, id2 interface{}) *Tree {
 }
 
 func evalAssignment(id, expr interface{}) *Tree {
-	t := Tree{"att", initSons()}
+	t := Tree{"ass", initSons()}
 	t.Sons = append(t.Sons, &Tree{id.(string), initSons()})
 	t.Sons = append(t.Sons, expr.(*Tree))
 	return &t
