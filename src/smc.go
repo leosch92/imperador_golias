@@ -74,9 +74,9 @@ func createInMemory(ident *Tree, smc SMC) SMC {
 	return smc
 }
 
-func changeValueInMemory(ident *Tree, val *Tree, smc SMC) (SMC, bool){
+func changeValueInMemory(ident *Tree, val *Tree, smc SMC) (SMC, bool) {
 	l, notExist := smc.E[ident.toString()]
-	if notExist{
+	if notExist {
 		return smc, false
 	}
 	smc.M[l] = val.toString()
@@ -89,32 +89,31 @@ func findValue(ident *Tree, smc SMC) string {
 	return val
 }
 
-func getTreeFromValueStack(smc SMC) (SMC,*Tree){
+func getTreeFromValueStack(smc SMC) (SMC, *Tree) {
 	var genericInfo interface{}
 	var typeOfGenericInfo string
 	smc.S, genericInfo, typeOfGenericInfo = smc.S.pop()
-	
-	if typeOfGenericInfo != "*main.Tree"{
-		panic("Erro inesperado")	
+
+	if typeOfGenericInfo != "*main.Tree" {
+		panic("Erro inesperado")
 	}
 	var tree = new(Tree)
 	tree = (genericInfo).(*Tree)
 	return smc, tree
 }
 
-func getEnviromentFromValueStack(smc SMC) (SMC, map[string]string){
+func getEnviromentFromValueStack(smc SMC) (SMC, map[string]string) {
 	var genericInfo interface{}
 	var typeOfGenericInfo string
 	smc.S, genericInfo, typeOfGenericInfo = smc.S.pop()
-	
-	if typeOfGenericInfo != "map[string]string"{
+
+	if typeOfGenericInfo != "map[string]string" {
 		println(typeOfGenericInfo)
-		panic("Erro inesperado")	
+		panic("Erro inesperado")
 	}
 	var enviroment = genericInfo.(map[string]string)
 	return smc, enviroment
 }
-
 
 func criaMapa() map[string]func(SMC) SMC {
 	var evaluate = map[string]func(SMC) SMC{
@@ -309,7 +308,7 @@ func criaMapa() map[string]func(SMC) SMC {
 			//smc.M[ident.toString()] = value.toString()
 			var found bool
 			smc, found = changeValueInMemory(ident, value, smc)
-			if !found{
+			if !found {
 				println("Referência não encontrada")
 			}
 			return smc
@@ -320,16 +319,16 @@ func criaMapa() map[string]func(SMC) SMC {
 		"noop": func(smc SMC) SMC {
 			return smc
 		},
-		"dec": func(smc SMC) SMC{
+		"dec": func(smc SMC) SMC {
 			ident := new(Tree)
 			smc, ident = getTreeFromValueStack(smc)
-			return createInMemory(ident, smc) 
+			return createInMemory(ident, smc)
 		},
-		"block": func(smc SMC) SMC{
+		"block": func(smc SMC) SMC {
 			var enviroment map[string]string
 			smc, enviroment = getEnviromentFromValueStack(smc)
 			smc.E = enviroment
-			return smc	
+			return smc
 		},
 	}
 	return evaluate
@@ -400,7 +399,7 @@ func criaMapaDismember() map[string]func(SMC, []*Tree) SMC {
 			smc.S = smc.S.push(forest[1])
 			return smc
 		},
-		"block": func(smc SMC, forest[]*Tree) SMC{
+		"block": func(smc SMC, forest []*Tree) SMC {
 			smc.C = smc.C.push(Tree{Value: "block", Sons: nil})
 			for i := (len(forest) - 1); i >= 0; i-- {
 				smc.C = smc.C.push(*forest[i])
@@ -408,8 +407,8 @@ func criaMapaDismember() map[string]func(SMC, []*Tree) SMC {
 			var copyOfEnviroment map[string]string
 			for key, value := range smc.M {
 				copyOfEnviroment[key] = value
-	     	}
-			smc.S = smc.S.push(copyOfEnviroment) 
+			}
+			smc.S = smc.S.push(copyOfEnviroment)
 			return smc
 		},
 	}
@@ -420,19 +419,19 @@ func (tree Tree) dismember() (string, []*Tree) {
 	return tree.Value, tree.Sons
 }
 
-func printMap(m map[string]string) {
-	for k, v := range m {
+func printMap(m *map[string]string) {
+	for k, v := range *m {
 		fmt.Printf(" %s:%s", k, v)
 	}
 }
 
-func (smc SMC) printSmc() {
+func (smc *SMC) printSmc() {
 	fmt.Print("<")
-	printMap(smc.E)
+	printMap(&smc.E)
 	fmt.Print(", ")
 	smc.S.print()
 	fmt.Print(",")
-	printMap(smc.M)
+	printMap(&smc.M)
 	fmt.Print(", ")
 	smc.C.print()
 	fmt.Print(">")
@@ -440,7 +439,7 @@ func (smc SMC) printSmc() {
 }
 
 func resolverSMC(smc SMC, t Tree, verbose bool) SMC {
-	
+
 	evaluate = criaMapa()
 	dismember = criaMapaDismember()
 	smc.C = smc.C.push(t)

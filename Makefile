@@ -35,12 +35,13 @@ install:
 	#echo "Project cloned successfully"
 	$(GOBIN)/pigeon -o=src/parser.go peg/imp.peg
 	$(GOBUILD) -o=main ./src
-	sh run.sh
+	chmod +x ./run.sh
+	bash run.sh
 
 main:
 	$(GOBIN)/pigeon -o=src/parser.go peg/imp.peg
 	$(GOBUILD) -o=main ./src
-	sh run.sh
+	bash run.sh
 
 .PHONY: clean
 clean:

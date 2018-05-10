@@ -1,6 +1,7 @@
+#!/bin/bash
 dir=tests
 cd $dir
-dirlist=( `ls -B *.imp | sed -e 's/\..*$//'` )
+declare -a dirlist=( `ls -B *.imp | sed -e 's/\..*$//'` )
 #fcount='ls -B *.imp | wc - 1'
 echo "Programas encontrados:"
 for file in ${dirlist[*]}
