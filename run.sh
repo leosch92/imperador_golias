@@ -10,7 +10,7 @@ done
 cd ../
 echo 'Qual programa deseja executar?'
 read op
-if [ "$op" == "exit" ] 
+if [ "$op" == "exit" ]
 then
     exit 0;
 fi
