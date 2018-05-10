@@ -31,8 +31,8 @@ If <- "if" _ '(' _ boolExp:BoolExp _ ')' _ ifBody:Block _ elseStatement:("else" 
     return evalIf(boolExp, ifBody, elseStatement), nil
 }
 
-Block <- '{' _ seq:Sequence _ '}' {
-    return seq, nil
+Block <- '{' _ body:( _ Command )* _ '}' {
+    return evalBlock(body), nil
 }
 
 Expression <- ArithExpr /
@@ -69,20 +69,20 @@ Integer <- '-'? [0-9]+ {
 
 BoolExp <- keyword: KeywordBoolExp {
     return evalKeywordBoolExp(keyword), nil
-} 
+}
 / unBoolOp: UnaryBoolOp boolExp: BoolExp {
     return evalUnaryBoolExp(unBoolOp, boolExp), nil
 }
 / id1: Identifier _ binBoolOp: BinaryBoolOp _ id2: Identifier {
     return evalBinaryLogicExp(binBoolOp, id1, id2), nil
-} 
+}
 / id1: Identifier _ binBoolOp: BinaryBoolOp _ id2:ArithExpr {
     return evalBinaryArithExp(binBoolOp, id1, id2), nil
 }
 
 KeywordBoolExp <- ("true" / "false") {
     return string(c.text), nil
-}    
+}
 
 UnaryBoolOp <- '~'{
     return string(c.text), nil

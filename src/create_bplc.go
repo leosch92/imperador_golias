@@ -114,6 +114,20 @@ func evalSequence(first, rest interface{}) *Tree {
 	return &t
 }
 
+func evalBlock(body interface{}) *Tree {
+	t := Tree{"block", initSons()}
+
+	restSl := toIfaceSlice(body)
+
+	for _, v := range restSl {
+		restCmd := toIfaceSlice(v)
+		// o elemento 0 contém espaçamento e o 1 contém de fato uma árvore de comando
+		t.Sons = append(t.Sons, restCmd[1].(*Tree))
+	}
+
+	return &t
+}
+
 func evalIf(boolExp, ifBody, elseStatement interface{}) *Tree {
 	t := Tree{"if", initSons()}
 	t.Sons = append(t.Sons, boolExp.(*Tree))

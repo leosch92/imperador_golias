@@ -408,8 +408,8 @@ func criaMapaDismember() map[string]func(SMC, []*Tree) SMC {
 			for i := (len(forest) - 1); i >= 0; i-- {
 				smc.C = smc.C.push(*forest[i])
 			}
-			var copyOfEnviroment map[string]string
-			for key, value := range smc.M {
+			copyOfEnviroment := make(map[string]string)
+			for key, value := range smc.E {
 				copyOfEnviroment[key] = value
 			}
 			smc.S = smc.S.push(copyOfEnviroment)
