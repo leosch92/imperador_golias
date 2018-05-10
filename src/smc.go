@@ -68,16 +68,15 @@ func memFindNext(memory map[string]string) int {
 	return max + 1
 }
 
-func toMemory(ident *Tree, val *Tree, smc SMC) SMC {
+func createInMemory(ident *Tree, smc SMC) SMC {
 	l := memFindNext(smc.M)
 	smc.E[ident.toString()] = strconv.Itoa(l)
-	smc.M[strconv.Itoa(l)] = val.toString()
 	return smc
 }
 
-func changeMemory(ident *Tree, val *Tree, smc SMC) (SMC, bool){
-	l, err := smc.E[ident.toString()]
-	if err{
+func changeValueInMemory(ident *Tree, val *Tree, smc SMC) (SMC, bool){
+	l, notExist := smc.E[ident.toString()]
+	if notExist{
 		return smc, false
 	}
 	smc.M[l] = val.toString()
@@ -85,7 +84,7 @@ func changeMemory(ident *Tree, val *Tree, smc SMC) (SMC, bool){
 }
 
 func findValue(ident *Tree, smc SMC) string {
-	l := smc.E[ident.toString()]
+	l, _ := smc.E[ident.toString()]
 	val := smc.M[l]
 	return val
 }
@@ -100,7 +99,6 @@ func criaMapa() map[string]func(SMC) SMC {
 				smc.S, t = smc.S.pop()
 				value, err := strconv.Atoi(t.toString())
 				if err != nil {
-					/*value, _ = strconv.Atoi(smc.M[t.toString()])*/
 					value, _ = strconv.Atoi(findValue(t, smc))
 				}
 				sum += value
@@ -167,10 +165,10 @@ func criaMapa() map[string]func(SMC) SMC {
 			for i := 0; i < num; i++ {
 				smc.S, t = smc.S.pop()
 				var str = t.toString()
-				value, found := smc.M[str]
-				if found {
-					str = value
-				}
+				//value, found := smc.M[str]
+				//if found {
+				//	str = value
+				//}
 				boolValue := (str == "true")
 				result = result && boolValue
 			}
@@ -257,7 +255,6 @@ func criaMapa() map[string]func(SMC) SMC {
 				smc.C = smc.C.push(Tree{Value: "while", Sons: append(append(initSons(), exp), bloco)})
 				smc.C = smc.C.push(*bloco)
 			}
-
 			return smc
 		},
 		"if": func(smc SMC) SMC {
@@ -274,13 +271,13 @@ func criaMapa() map[string]func(SMC) SMC {
 			}
 			return smc
 		},
-		"att": func(smc SMC) SMC {
+		"ass": func(smc SMC) SMC {
 			ident := new(Tree)
 			value := new(Tree)
 			smc.S, value = smc.S.pop()
 			smc.S, ident = smc.S.pop()
 			var found bool
-			smc, found = changeMemory(ident, value, smc)
+			smc, found = changeValueInMemory(ident, value, smc)
 			if !found{
 				println("Referência não encontrada")
 			}
@@ -292,12 +289,13 @@ func criaMapa() map[string]func(SMC) SMC {
 		"noop": func(smc SMC) SMC {
 			return smc
 		},
-		"ass": func(smc SMC) SMC{
+		"dec": func(smc SMC) SMC{
 			ident := new(Tree)
-			value := new(Tree)
-			smc.S, value = smc.S.pop()
 			smc.S, ident = smc.S.pop()
-			return toMemory(ident, value, smc) 
+			return createInMemory(ident, smc) 
+		},
+		"block": func(smc SMC) SMC{
+			return smc	
 		},
 	}
 	return evaluate
