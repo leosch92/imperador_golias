@@ -7,11 +7,27 @@
     package main
 }
 
-Input <- _ seq: Sequence _ EOF {
-    return seq, nil
+Input <- _ cl: Clauses _ EOF {
+    return cl, nil
 }
 
-Sequence <- first:Command rest:( _ Command )* {
+Clauses <- Variable? Constant? init:Initialization? cmd:(Sequence / Command) {
+    return evalClauses(init, cmd), nil
+}
+
+Variable <- "var" Identifier+
+
+Constant <- "const" Identifier+
+
+Initialization <- "init" __ sInits: ( SingleInit __ )+ {
+    return evalInitialization(sInits), nil
+}
+
+SingleInit <- id: Identifier _ '=' _ expr: Expression {
+    return evalSingleInit(id, expr), nil
+}
+
+Sequence <- first:Command rest:( _ Command )+ {
     return evalSequence(first, rest), nil
 }
 
@@ -31,12 +47,11 @@ If <- "if" _ '(' _ boolExp:BoolExp _ ')' _ ifBody:Block _ elseStatement:("else" 
     return evalIf(boolExp, ifBody, elseStatement), nil
 }
 
-Block <- '{' _ seq:Sequence _ '}' {
-    return seq, nil
+Block <- '{' _ cmd:( Sequence / Command ) _ '}' {
+    return cmd, nil
 }
 
 Expression <- ArithExpr /
-              Identifier /
               BoolExp
 
 ArithExpr <- first:Term rest:( _ AddOp _ Term )* {
