@@ -1,6 +1,8 @@
 package main
 
-import "reflect"
+import (
+	"reflect"
+)
 
 var toBPLC = map[string]string{
 	"+":   "add",
@@ -141,5 +143,29 @@ func evalIf(boolExp, ifBody, elseStatement interface{}) *Tree {
 		t.Sons = append(t.Sons, elseSlice[2].(*Tree))
 	}
 
+	return &t
+}
+
+func evalInitialization(sInits interface{}) *Tree {
+	t := Tree{"init", initSons()}
+	sInitsSlice := toIfaceSlice(sInits)
+	for _, value := range sInitsSlice {
+		sInitWithSpaces := toIfaceSlice(value)
+		t.Sons = append(t.Sons, sInitWithSpaces[0].(*Tree))
+	}
+	return &t
+}
+
+func evalSingleInit(id, expr interface{}) *Tree {
+	t := Tree{"s_init", initSons()}
+	t.Sons = append(t.Sons, &Tree{id.(string), initSons()})
+	t.Sons = append(t.Sons, expr.(*Tree))
+	return &t
+}
+
+func evalClauses(init, cmd interface{}) *Tree {
+	t := Tree{"clauses", initSons()}
+	t.Sons = append(t.Sons, init.(*Tree))
+	t.Sons = append(t.Sons, cmd.(*Tree))
 	return &t
 }
