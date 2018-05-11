@@ -95,7 +95,7 @@ func evalBinaryArithExp(binBoolOp, id1, id2 interface{}) *Tree {
 }
 
 func evalAssignment(id, expr interface{}) *Tree {
-	t := Tree{"att", initSons()}
+	t := Tree{"ass", initSons()}
 	t.Sons = append(t.Sons, &Tree{id.(string), initSons()})
 	t.Sons = append(t.Sons, expr.(*Tree))
 	return &t
@@ -106,6 +106,20 @@ func evalSequence(first, rest interface{}) *Tree {
 	t.Sons = append(t.Sons, first.(*Tree))
 
 	restSl := toIfaceSlice(rest)
+
+	for _, v := range restSl {
+		restCmd := toIfaceSlice(v)
+		// o elemento 0 contém espaçamento e o 1 contém de fato uma árvore de comando
+		t.Sons = append(t.Sons, restCmd[1].(*Tree))
+	}
+
+	return &t
+}
+
+func evalBlock(body interface{}) *Tree {
+	t := Tree{"block", initSons()}
+
+	restSl := toIfaceSlice(body)
 
 	for _, v := range restSl {
 		restCmd := toIfaceSlice(v)

@@ -27,10 +27,10 @@ func resolveDesigualdade(typeOf string, smc SMC, forest ...*Tree) *Tree {
 	value1, err1 := strconv.Atoi(forest[0].toString())
 	value0, err0 := strconv.Atoi(forest[1].toString())
 	if err0 != nil {
-		value0, _ = strconv.Atoi(smc.M[forest[1].toString()])
+		value0, _ = strconv.Atoi(findValue(forest[1], smc))
 	}
 	if err1 != nil {
-		value1, _ = strconv.Atoi(smc.M[forest[0].toString()])
+		value1, _ = strconv.Atoi(findValue(forest[0], smc))
 	}
 
 	var boolValue bool
@@ -68,15 +68,16 @@ func memFindNext(memory map[string]string) int {
 	return max + 1
 }
 
-func createInMemory(ident *Tree, smc SMC) SMC {
+func createInMemory(ident *Tree, val *Tree, smc SMC) SMC {
 	l := memFindNext(smc.M)
 	smc.E[ident.toString()] = strconv.Itoa(l)
+	smc.M[strconv.Itoa(l)] = val.toString()
 	return smc
 }
 
 func changeValueInMemory(ident *Tree, val *Tree, smc SMC) (SMC, bool) {
-	l, notExist := smc.E[ident.toString()]
-	if notExist {
+	l, exist := smc.E[ident.toString()]
+	if !exist {
 		return smc, false
 	}
 	smc.M[l] = val.toString()
@@ -309,7 +310,10 @@ func criaMapa() map[string]func(SMC) SMC {
 			var found bool
 			smc, found = changeValueInMemory(ident, value, smc)
 			if !found {
-				println("Referência não encontrada")
+				/*println("Referência não encontrada")
+				Temporariamente fazendo att na ass,
+				 enquanto não fica pronto*/
+				createInMemory(ident, value, smc)
 			}
 			return smc
 		},
@@ -322,7 +326,7 @@ func criaMapa() map[string]func(SMC) SMC {
 		"dec": func(smc SMC) SMC {
 			ident := new(Tree)
 			smc, ident = getTreeFromValueStack(smc)
-			return createInMemory(ident, smc)
+			return createInMemory(ident, nil, smc)
 		},
 		"block": func(smc SMC) SMC {
 			var enviroment map[string]string
@@ -404,8 +408,8 @@ func criaMapaDismember() map[string]func(SMC, []*Tree) SMC {
 			for i := (len(forest) - 1); i >= 0; i-- {
 				smc.C = smc.C.push(*forest[i])
 			}
-			var copyOfEnviroment map[string]string
-			for key, value := range smc.M {
+			copyOfEnviroment := make(map[string]string)
+			for key, value := range smc.E {
 				copyOfEnviroment[key] = value
 			}
 			smc.S = smc.S.push(copyOfEnviroment)
