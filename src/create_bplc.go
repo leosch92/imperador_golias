@@ -99,6 +99,12 @@ func evalAssignment(id, expr interface{}) *Tree {
 	return &t
 }
 
+func evalPrint(exp interface{}) *Tree {
+	t := Tree{"print", initSons()}
+	t.Sons = append(t.Sons, exp.(*Tree))
+	return &t
+}
+
 func evalSequence(first, rest interface{}) *Tree {
 	t := Tree{"seq", initSons()}
 	t.Sons = append(t.Sons, first.(*Tree))
@@ -114,16 +120,10 @@ func evalSequence(first, rest interface{}) *Tree {
 	return &t
 }
 
-func evalBlock(body interface{}) *Tree {
+func evalBlock(seq interface{}) *Tree {
 	t := Tree{"block", initSons()}
 
-	restSl := toIfaceSlice(body)
-
-	for _, v := range restSl {
-		restCmd := toIfaceSlice(v)
-		// o elemento 0 contém espaçamento e o 1 contém de fato uma árvore de comando
-		t.Sons = append(t.Sons, restCmd[1].(*Tree))
-	}
+	t.Sons = append(t.Sons, seq.(*Tree))
 
 	return &t
 }

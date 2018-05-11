@@ -17,7 +17,8 @@ Sequence <- first:Command rest:( _ Command )* {
 
 Command <- While /
            If /
-           Assignment
+           Assignment /
+           Print
 
 Assignment <- id:Identifier _ ":=" _ expr:Expression _ ';' {
     return evalAssignment(id, expr), nil
@@ -31,8 +32,12 @@ If <- "if" _ '(' _ boolExp:BoolExp _ ')' _ ifBody:Block _ elseStatement:("else" 
     return evalIf(boolExp, ifBody, elseStatement), nil
 }
 
-Block <- '{' _ body:( _ Command )* _ '}' {
-    return evalBlock(body), nil
+Print <- "print" _ '(' _ exp:Expression _ ')' ';' {
+    return evalPrint(exp), nil
+}
+
+Block <- '{' _ seq:Sequence _ '}' {
+    return evalBlock(seq), nil
 }
 
 Expression <- ArithExpr /

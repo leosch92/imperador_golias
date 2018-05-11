@@ -334,6 +334,21 @@ func criaMapa() map[string]func(SMC) SMC {
 			smc.E = enviroment
 			return smc
 		},
+		"print": func(smc SMC) SMC {
+			smc, value := getTreeFromValueStack(smc)
+			num, err := strconv.Atoi(value.Value)
+			if err == nil {
+				fmt.Println(num)
+			} else {
+				num, err = strconv.Atoi(findValue(value, smc))
+				if err == nil {
+					fmt.Println(num)
+				} else {
+					panic(fmt.Sprintf("Variable %s not declared", value.Value))
+				}
+			}
+			return smc
+		},
 	}
 	return evaluate
 }
