@@ -122,10 +122,10 @@ func evalSequence(first, rest interface{}) *Tree {
 	return &t
 }
 
-func evalBlock(seq interface{}) *Tree {
+func evalBlock(cmd interface{}) *Tree {
 	t := Tree{"block", initSons()}
 
-	t.Sons = append(t.Sons, seq.(*Tree))
+	t.Sons = append(t.Sons, cmd.(*Tree))
 
 	return &t
 }

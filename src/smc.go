@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"math/big"
 	"strconv"
 )
 
@@ -121,51 +122,61 @@ func criaMapa() map[string]func(SMC) SMC {
 		"add": func(smc SMC) SMC {
 			var num = 2
 			var t = new(Tree)
-			var sum = 0
+			var sum = big.NewInt(0)
 			for i := 0; i < num; i++ {
 				smc, t = getTreeFromValueStack(smc)
-				value, err := strconv.Atoi(t.toString())
-				if err != nil {
+				//value, err := strconv.Atoi(t.toString())
+				value := big.NewInt(0)
+				_, err := value.SetString(t.Value, 10)
+				if !err {
+					value = big.NewInt(0)
 					//value, _ = strconv.Atoi(smc.M[t.toString()])
-					value, _ = strconv.Atoi(findValue(t, smc))
+					value.SetString(findValue(t, smc), 10)
 				}
-				sum += value
+				sum.Add(sum, value)
 			}
-			smc.S = smc.S.push(&Tree{Value: strconv.Itoa(sum), Sons: nil})
+			smc.S = smc.S.push(&Tree{Value: sum.String(), Sons: nil})
 			return smc
 		},
 		"sub": func(smc SMC) SMC {
 			var t1 *(Tree)
 			var t0 *(Tree)
+			var value0 = big.NewInt(0)
+			var value1 = big.NewInt(0)
+
 			smc, t1 = getTreeFromValueStack(smc)
 			smc, t0 = getTreeFromValueStack(smc)
-			value0, err0 := strconv.Atoi(t0.toString())
-			if err0 != nil {
-				//value0, _ = strconv.Atoi(smc.M[t0.toString()])
-				value0, _ = strconv.Atoi(findValue(t0, smc))
+			value0, err0 := value0.SetString(t0.Value, 10)
+			if !err0 {
+				value0 = big.NewInt(0)
+				//n := findValue(t0, smc)
+				value0.SetString(findValue(t0, smc), 10)
 			}
-			value1, err1 := strconv.Atoi(t1.toString())
-			if err1 != nil {
+			value1, err1 := value1.SetString(t1.Value, 10)
+			if !err1 {
+				value1 = big.NewInt(0)
 				//value1, _ = strconv.Atoi(smc.M[t1.toString()])
-				value1, _ = strconv.Atoi(findValue(t1, smc))
+				value1, err1 = value1.SetString(findValue(t1, smc), 10)
 			}
-			smc.S = smc.S.push(&Tree{Value: strconv.Itoa(value0 - value1), Sons: nil})
+			res := value0.Sub(value0, value1)
+			smc.S = smc.S.push(&Tree{Value: res.String(), Sons: nil})
 			return smc
 		},
 		"mul": func(smc SMC) SMC {
 			var num = 2
 			var t = new(Tree)
-			var product = 1
+			var product = big.NewInt(1)
 			for i := 0; i < num; i++ {
 				smc, t = getTreeFromValueStack(smc)
-				value, err := strconv.Atoi(t.toString())
-				if err != nil {
+				value, err := big.NewInt(0).SetString(t.Value, 10)
+				if !err {
+					value = big.NewInt(0)
 					//value, _ = strconv.Atoi(smc.M[t.toString()])
-					value, _ = strconv.Atoi(findValue(t, smc))
+					value, err = value.SetString(findValue(t, smc), 10)
 				}
-				product *= value
+				product.Mul(product, value)
 			}
-			smc.S = smc.S.push(&Tree{Value: strconv.Itoa(product), Sons: nil})
+			smc.S = smc.S.push(&Tree{Value: product.String(), Sons: nil})
 			return smc
 		},
 		"div": func(smc SMC) SMC {
@@ -173,17 +184,19 @@ func criaMapa() map[string]func(SMC) SMC {
 			var t0 *(Tree)
 			smc, t1 = getTreeFromValueStack(smc)
 			smc, t0 = getTreeFromValueStack(smc)
-			value0, err0 := strconv.Atoi(t0.toString())
-			if err0 != nil {
+			value0, err0 := big.NewInt(0).SetString(t0.Value, 10)
+			if !err0 {
+				value0 = big.NewInt(0)
 				//value0, _ = strconv.Atoi(smc.M[t0.toString()])
-				value0, _ = strconv.Atoi(findValue(t0, smc))
+				value0, err0 = value0.SetString(findValue(t0, smc), 10)
 			}
-			value1, err1 := strconv.Atoi(t1.toString())
-			if err1 != nil {
+			value1, err1 := big.NewInt(0).SetString(t1.Value, 10)
+			if !err1 {
+				value1 = big.NewInt(0)
 				//value1, _ = strconv.Atoi(smc.M[t1.toString()])
-				value1, _ = strconv.Atoi(findValue(t1, smc))
+				value1, err1 = value1.SetString(findValue(t1, smc), 10)
 			}
-			smc.S = smc.S.push(&Tree{Value: strconv.Itoa(value0 / value1), Sons: nil})
+			smc.S = smc.S.push(&Tree{Value: value0.Div(value0, value1).String(), Sons: nil})
 			return smc
 		},
 		"and": func(smc SMC) SMC {
@@ -313,8 +326,23 @@ func criaMapa() map[string]func(SMC) SMC {
 				/*println("Referência não encontrada")
 				Temporariamente fazendo att na ass,
 				 enquanto não fica pronto*/
-				createInMemory(ident, value, smc)
+				panic(fmt.Sprint("Variable %s not declared.", value.Value))
 			}
+			return smc
+		},
+		"clauses": func(smc SMC) SMC {
+			return smc
+		},
+		"init": func(smc SMC) SMC {
+			return smc
+		},
+		"s_init": func(smc SMC) SMC {
+			value := new(Tree)
+			ident := new(Tree)
+			smc, value = getTreeFromValueStack(smc)
+			smc, ident = getTreeFromValueStack(smc)
+			//smc.M[ident.toString()] = value.toString()
+			createInMemory(ident, value, smc)
 			return smc
 		},
 		"seq": func(smc SMC) SMC {
@@ -336,12 +364,13 @@ func criaMapa() map[string]func(SMC) SMC {
 		},
 		"print": func(smc SMC) SMC {
 			smc, value := getTreeFromValueStack(smc)
-			num, err := strconv.Atoi(value.Value)
-			if err == nil {
+			num, err := big.NewInt(0).SetString(value.Value, 10)
+			if err {
 				fmt.Println(num)
 			} else {
-				num, err = strconv.Atoi(findValue(value, smc))
-				if err == nil {
+				num = big.NewInt(0)
+				num, err = big.NewInt(0).SetString(findValue(value, smc), 10)
+				if err {
 					fmt.Println(num)
 				} else {
 					panic(fmt.Sprintf("Variable %s not declared", value.Value))
