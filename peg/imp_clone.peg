@@ -1,60 +1,135 @@
 //
-// Clone visando mostrar apenas o valor de retorno do slice de interfaces
-// retornado pelo parser
+// PEG para golang visando a compilação e interpretação de código
+// fonte na linguagem IMP
 //
 
 {
     package main
 }
 
-Input <- Sequence EOF
+Input <- _ cl: Clauses _ EOF {
+    return cl, nil
+}
 
-Sequence <- Command ( _ Command )*
+Clauses <- variable:(Variable __)?  constant:(Constant __)? init:(Initialization __)? cmd:( Sequence / Command ) {
+    return evalClauses(variable, constant, init, cmd), nil
+}
+
+Variable <- "var" __ id:Identifier rest:( _ ',' _ Identifier )* {
+    return evalVariable(id, rest), nil
+}
+
+Constant <- "const" __ id:Identifier rest:( _ ',' _ Identifier )*
+
+Initialization <- "init" __ sInit:SingleInit rest:( _ ',' _ SingleInit )* {
+    return evalInitialization(sInit, rest), nil
+}
+
+SingleInit <- id: Identifier _ '=' _ expr: Expression {
+    return evalSingleInit(id, expr), nil
+}
 
 Command <- While /
            If /
+           Print / 
            Assignment
 
-Assignment <- Identifier _ ":=" _ Expression _ ';'
+Sequence <- first:Command ';' rest:( _ Command ';' )+ {
+    return evalSequence(first, rest), nil
+}
 
-While <- "while" __ '(' _ BoolExp _ ')' __ "do" _ Block
+Assignment <- id:Identifier _ ":=" _ expr:Expression {
+    return evalAssignment(id, expr), nil
+}
 
-If <- "if" _ '(' _ BoolExp _ ')' _ Block _ ("else" _ Block)?
+While <- "while" __ '(' _ boolExp:BoolExp _ ')' __ "do" _ body:Block {
+    return evalWhile(boolExp, body), nil
+}
 
-Block <- '{' _ Sequence _ '}'
+If <- "if" _ '(' _ boolExp:BoolExp _ ')' _ ifBody:Block _ elseStatement:("else" _ Block)? {
+    return evalIf(boolExp, ifBody, elseStatement), nil
+}
+
+Print <- "print" _ '(' _ exp:Expression _ ')' {
+    return evalPrint(exp), nil
+}
+
+Block <- '{' _ DeclarationSequence? _ cmd: ( Sequence / Command )  _ '}' {
+    return evalBlock(cmd), nil
+}
+
+DeclarationSequence <- Declaration /
+                       Declaration _ ';' _ DeclarationSequence
+
+Declaration <- DeclOp __ IniSeq
+
+IniSeq <- SingleInit / SingleInit _ ',' _ IniSeq 
+
+DeclOp <- typ:("var" / "const") {
+    return evalDeclOp(typ), nil
+}
 
 Expression <- ArithExpr /
-              Identifier /
               BoolExp
 
-ArithExpr <- Term ( _ AddOp _ Term )*
+ArithExpr <- first:Term rest:( _ AddOp _ Term )* {
+    return evalArithExpr(first, rest), nil
+}
 
-Term <- Factor ( _ MulOp _ Factor )*
+Term <- first:Factor rest:( _ MulOp _ Factor )* {
+    return evalArithExpr(first, rest), nil
+}
 
-Factor <- '(' expr:ArithExpr ')' 
-           / integer:Integer
-           / id: Identifier
+Factor <- '(' expr:ArithExpr ')' {
+    return expr, nil
+} / integer:Integer {
+    return integer, nil
+} / id: Identifier {
+    return id, nil
+}
 
-AddOp <- ('+' / '-' )
+AddOp <- ('+' / '-' ) {
+    return string(c.text), nil
+}
 
-MulOp <- ( '*' / '/' )
+MulOp <- ( '*' / '/' ) {
+    return string(c.text), nil
+}
 
-Integer <- '-'? [0-9]+
+BoolExp <- keyword: KeywordBoolExp {
+    return evalKeywordBoolExp(keyword), nil
+}
+/ unBoolOp: UnaryBoolOp boolExp: BoolExp {
+    return evalUnaryBoolExp(unBoolOp, boolExp), nil
+}
+/ id1: Identifier _ binBoolOp: BinaryBoolOp _ id2: Identifier {
+    return evalBinaryLogicExp(binBoolOp, id1, id2), nil
+}
+/ id1: Identifier _ binBoolOp: BinaryBoolOp _ id2:ArithExpr {
+    return evalBinaryArithExp(binBoolOp, id1, id2), nil
+}
 
-BoolExp <- KeywordBoolExp /
-           UnaryBoolOp BoolExp / 
-           Identifier _ binBoolOp: BinaryBoolOp _ Identifier / 
-           Identifier _ binBoolOp: BinaryBoolOp _ ArithExpr
+KeywordBoolExp <- ("true" / "false") {
+    return string(c.text), nil
+}
 
-KeywordBoolExp <- ("true" / "false")
+UnaryBoolOp <- '~'{
+    return string(c.text), nil
+}
 
-UnaryBoolOp <- '~'
+BinaryBoolOp <- ( "==" / "<=" / ">=" / "<" / ">" / "/\\" / "\\/") {
+    return string(c.text), nil
+}
 
-BinaryBoolOp <- ( "==" / "<=" / ">=" / "<" / ">" / "/\\" / "\\/")
+Identifier <- [a-zA-Z][0-9a-zA-Z]*{
+    return string(c.text), nil
+}
+
+Integer <- '-'? [0-9]+ {
+    return string(c.text), nil
+}
 
 _ "whitespace" <- [ \n\t\r]*
 __ "obligatory_whitespace" <- [ \n\t\r]+
-
-Identifier <- [a-zA-Z][0-9a-zA-Z]*
 
 EOF <- !.

@@ -11,32 +11,34 @@ Input <- _ cl: Clauses _ EOF {
     return cl, nil
 }
 
-Clauses <- Variable? Constant? init:Initialization? cmd:(Sequence / Command) {
-    return evalClauses(init, cmd), nil
+Clauses <- variable:(Variable __)?  constant:(Constant __)? init:(Initialization __)? cmd:( Sequence / Command ) {
+    return evalClauses(variable, constant, init, cmd), nil
 }
 
-Variable <- "var" Identifier+
+Variable <- "var" __ id:Identifier rest:( _ ',' _ Identifier )* {
+    return evalVariable(id, rest), nil
+}
 
-Constant <- "const" Identifier+
+Constant <- "const" __ id:Identifier rest:( _ ',' _ Identifier )*
 
-Initialization <- "init" __ sInits: ( SingleInit __ )+ {
-    return evalInitialization(sInits), nil
+Initialization <- "init" __ sInit:SingleInit rest:( _ ',' _ SingleInit )* {
+    return evalInitialization(sInit, rest), nil
 }
 
 SingleInit <- id: Identifier _ '=' _ expr: Expression {
     return evalSingleInit(id, expr), nil
 }
 
-Sequence <- first:Command rest:( _ Command )+ {
+Command <- While /
+           If /
+           Print / 
+           Assignment
+
+Sequence <- first:Command ';' rest:( _ Command ';' )+ {
     return evalSequence(first, rest), nil
 }
 
-Command <- While /
-           If /
-           Assignment /
-           Print
-
-Assignment <- id:Identifier _ ":=" _ expr:Expression _ ';' {
+Assignment <- id:Identifier _ ":=" _ expr:Expression {
     return evalAssignment(id, expr), nil
 }
 
@@ -48,12 +50,23 @@ If <- "if" _ '(' _ boolExp:BoolExp _ ')' _ ifBody:Block _ elseStatement:("else" 
     return evalIf(boolExp, ifBody, elseStatement), nil
 }
 
-Print <- "print" _ '(' _ exp:Expression _ ')' ';' {
+Print <- "print" _ '(' _ exp:Expression _ ')' {
     return evalPrint(exp), nil
 }
 
-Block <- '{' _ cmd:( Sequence / Command ) _ '}' {
-    return cmd, nil
+Block <- '{' _ DeclarationSequence? _ cmd: ( Sequence / Command )  _ '}' {
+    return evalBlock(cmd), nil
+}
+
+DeclarationSequence <- Declaration /
+                       Declaration _ ';' _ DeclarationSequence
+
+Declaration <- DeclOp __ IniSeq
+
+IniSeq <- SingleInit / SingleInit _ ',' _ IniSeq 
+
+DeclOp <- typ:("var" / "const") {
+    return evalDeclOp(typ), nil
 }
 
 Expression <- ArithExpr /
@@ -83,10 +96,6 @@ MulOp <- ( '*' / '/' ) {
     return string(c.text), nil
 }
 
-Integer <- '-'? [0-9]+ {
-    return string(c.text), nil
-}
-
 BoolExp <- keyword: KeywordBoolExp {
     return evalKeywordBoolExp(keyword), nil
 }
@@ -112,11 +121,15 @@ BinaryBoolOp <- ( "==" / "<=" / ">=" / "<" / ">" / "/\\" / "\\/") {
     return string(c.text), nil
 }
 
-_ "whitespace" <- [ \n\t\r]*
-__ "obligatory_whitespace" <- [ \n\t\r]+
-
 Identifier <- [a-zA-Z][0-9a-zA-Z]*{
     return string(c.text), nil
 }
+
+Integer <- '-'? [0-9]+ {
+    return string(c.text), nil
+}
+
+_ "whitespace" <- [ \n\t\r]*
+__ "obligatory_whitespace" <- [ \n\t\r]+
 
 EOF <- !.
