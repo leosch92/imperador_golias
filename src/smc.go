@@ -447,18 +447,18 @@ func criaMapaDismember() map[string]func(SMC, []*Tree) SMC {
 			smc.S = smc.S.push(forest[1])
 			return smc
 		},
-		"block": func(smc SMC, forest []*Tree) SMC {
-			smc.C = smc.C.push(Tree{Value: "block", Sons: nil})
-			for i := (len(forest) - 1); i >= 0; i-- {
-				smc.C = smc.C.push(*forest[i])
-			}
-			copyOfEnviroment := make(map[string]string)
-			for key, value := range smc.E {
-				copyOfEnviroment[key] = value
-			}
-			smc.S = smc.S.push(copyOfEnviroment)
-			return smc
-		},
+		// "block": func(smc SMC, forest []*Tree) SMC {
+		// 	smc.C = smc.C.push(Tree{Value: "block", Sons: nil})
+		// 	for i := (len(forest) - 1); i >= 0; i-- {
+		// 		smc.C = smc.C.push(*forest[i])
+		// 	}
+		// 	copyOfEnviroment := make(map[string]string)
+		// 	for key, value := range smc.E {
+		// 		copyOfEnviroment[key] = value
+		// 	}
+		// 	smc.S = smc.S.push(copyOfEnviroment)
+		// 	return smc
+		// },
 	}
 	return dismember
 }
