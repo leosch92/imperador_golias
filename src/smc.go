@@ -119,6 +119,17 @@ func getEnviromentFromValueStack(smc SMC) (SMC, map[string]string) {
 
 func criaMapa() map[string]func(SMC) SMC {
 	var evaluate = map[string]func(SMC) SMC{
+		"var": func(smc SMC) SMC{
+			ident := new(Tree)
+			smc, ident = getTreeFromValueStack(smc)
+			copyOfEnviroment := make(map[string]string)
+			for key, value := range smc.E {
+				copyOfEnviroment[key] = value
+			}
+			smc.E[ident.toString()] = strconv.Itoa(memFindNext(smc.M))
+			smc.S = smc.S.push(copyOfEnviroment)
+			return smc
+		},
 		"add": func(smc SMC) SMC {
 			var num = 2
 			var t = new(Tree)
@@ -319,13 +330,9 @@ func criaMapa() map[string]func(SMC) SMC {
 			value := new(Tree)
 			smc, value = getTreeFromValueStack(smc)
 			smc, ident = getTreeFromValueStack(smc)
-			//smc.M[ident.toString()] = value.toString()
 			var found bool
 			smc, found = changeValueInMemory(ident, value, smc)
 			if !found {
-				/*println("Referência não encontrada")
-				Temporariamente fazendo att na ass,
-				 enquanto não fica pronto*/
 				panic(fmt.Sprint("Variable %s not declared.", value.Value))
 			}
 			return smc
@@ -333,16 +340,15 @@ func criaMapa() map[string]func(SMC) SMC {
 		"clauses": func(smc SMC) SMC {
 			return smc
 		},
-		"init": func(smc SMC) SMC {
+		"init-seq": func(smc SMC) SMC {
 			return smc
 		},
-		"s_init": func(smc SMC) SMC {
+		"init": func(smc SMC) SMC {
 			value := new(Tree)
 			ident := new(Tree)
 			smc, value = getTreeFromValueStack(smc)
 			smc, ident = getTreeFromValueStack(smc)
-			//smc.M[ident.toString()] = value.toString()
-			createInMemory(ident, value, smc)
+			smc = createInMemory(ident, value, smc)
 			return smc
 		},
 		"seq": func(smc SMC) SMC {
@@ -447,18 +453,18 @@ func criaMapaDismember() map[string]func(SMC, []*Tree) SMC {
 			smc.S = smc.S.push(forest[1])
 			return smc
 		},
-		"block": func(smc SMC, forest []*Tree) SMC {
-			smc.C = smc.C.push(Tree{Value: "block", Sons: nil})
-			for i := (len(forest) - 1); i >= 0; i-- {
-				smc.C = smc.C.push(*forest[i])
-			}
-			copyOfEnviroment := make(map[string]string)
-			for key, value := range smc.E {
-				copyOfEnviroment[key] = value
-			}
-			smc.S = smc.S.push(copyOfEnviroment)
-			return smc
-		},
+		// "block": func(smc SMC, forest []*Tree) SMC {
+		// 	smc.C = smc.C.push(Tree{Value: "block", Sons: nil})
+		// 	for i := (len(forest) - 1); i >= 0; i-- {
+		// 		smc.C = smc.C.push(*forest[i])
+		// 	}
+		// 	copyOfEnviroment := make(map[string]string)
+		// 	for key, value := range smc.E {
+		// 		copyOfEnviroment[key] = value
+		// 	}
+		// 	smc.S = smc.S.push(copyOfEnviroment)
+		// 	return smc
+		// },
 	}
 	return dismember
 }
