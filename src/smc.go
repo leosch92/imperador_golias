@@ -119,6 +119,17 @@ func getEnviromentFromValueStack(smc SMC) (SMC, map[string]string) {
 
 func criaMapa() map[string]func(SMC) SMC {
 	var evaluate = map[string]func(SMC) SMC{
+		"var": func(smc SMC) SMC{
+			ident := new(Tree)
+			smc, ident = getTreeFromValueStack(smc)
+			copyOfEnviroment := make(map[string]string)
+			for key, value := range smc.E {
+				copyOfEnviroment[key] = value
+			}
+			smc.E[ident.toString()] = strconv.Itoa(memFindNext(smc.M))
+			smc.S = smc.S.push(copyOfEnviroment)
+			return smc
+		},
 		"add": func(smc SMC) SMC {
 			var num = 2
 			var t = new(Tree)
@@ -319,7 +330,6 @@ func criaMapa() map[string]func(SMC) SMC {
 			value := new(Tree)
 			smc, value = getTreeFromValueStack(smc)
 			smc, ident = getTreeFromValueStack(smc)
-			//smc.M[ident.toString()] = value.toString()
 			var found bool
 			smc, found = changeValueInMemory(ident, value, smc)
 			if !found {
@@ -338,7 +348,6 @@ func criaMapa() map[string]func(SMC) SMC {
 			ident := new(Tree)
 			smc, value = getTreeFromValueStack(smc)
 			smc, ident = getTreeFromValueStack(smc)
-			//smc.M[ident.toString()] = value.toString()
 			createInMemory(ident, value, smc)
 			return smc
 		},
