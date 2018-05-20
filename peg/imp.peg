@@ -58,15 +58,18 @@ Block <- '{' _ decl:(DeclarationSequence __)? cmd: ( Sequence / Command )  _ '}'
     return evalBlock(decl, cmd), nil
 }
 
-DeclarationSequence <- Declaration /
-                       Declaration _ ';' _ DeclarationSequence
+DeclarationSequence <- Declaration / Declaration _ ';' _ Declaration
 
-Declaration <- DeclOp __ IniSeq
+Declaration <- declOp:DeclOp __ initSeq:InitSeq {
+    return evalDeclaration(declOp, initSeq), nil
+}
 
-IniSeq <- SingleInit / SingleInit _ ',' _ IniSeq 
+InitSeq <- sInit:SingleInit rest:( _ ',' _ SingleInit )* {
+    return evalInitialization(sInit, rest), nil
+}
 
-DeclOp <- typ:("var" / "const") {
-    return evalDeclOp(typ), nil
+DeclOp <- ("var" / "const") {
+    return string(c.text), nil
 }
 
 Expression <- ArithExpr /

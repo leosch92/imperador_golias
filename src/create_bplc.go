@@ -123,11 +123,15 @@ func evalSequence(first, rest interface{}) *Tree {
 }
 
 func evalBlock(decl, cmd interface{}) *Tree {
-	if decl != nil {
-
+	var t *Tree
+	if len(toIfaceSlice(decl)) != 0 {
+		t = toIfaceSlice(decl)[0].(*Tree)
+		aux := findLastBlockSon(t)
+		aux.Sons = append(aux.Sons, cmd.(*Tree))
+	} else {
+		t = cmd.(*Tree)
 	}
-	tCmd := cmd.(*Tree)
-	return tCmd
+	return t
 }
 
 func evalIf(boolExp, ifBody, elseStatement interface{}) *Tree {
@@ -148,8 +152,7 @@ func evalIf(boolExp, ifBody, elseStatement interface{}) *Tree {
 
 func evalInitialization(sInit, rest interface{}) *Tree {
 	tFirst := sInit.(*Tree)
-
-	if rest != nil {
+	if len(toIfaceSlice(rest)) != 0 {
 		t := Tree{"init-seq", initSons()}
 		t.Sons = append(t.Sons, tFirst)
 		restSlice := toIfaceSlice(rest)
@@ -163,14 +166,6 @@ func evalInitialization(sInit, rest interface{}) *Tree {
 	return tFirst
 }
 
-func evalDeclOp(typ interface{}) *Tree {
-	if typ.(string) == "var" {
-		return &Tree{"is_var", initSons()}
-	} else {
-		return &Tree{"is_const", initSons()}
-	}
-}
-
 func evalSingleInit(id, expr interface{}) *Tree {
 	t := Tree{"init", initSons()}
 	t.Sons = append(t.Sons, &Tree{id.(string), initSons()})
@@ -180,15 +175,15 @@ func evalSingleInit(id, expr interface{}) *Tree {
 
 func evalClauses(variable, constant, init, cmd interface{}) *Tree {
 	var t *Tree
-	if variable != nil {
+	if len(toIfaceSlice(variable)) != 0 {
 		t = toIfaceSlice(variable)[0].(*Tree)
 	}
-	if constant != nil {
+	if len(toIfaceSlice(constant)) != 0 {
 
 	}
 
-	aux := findLastRightSon(t)
-	if init != nil {
+	aux := findLastBlockSon(t)
+	if len(toIfaceSlice(init)) != 0 {
 		if t != nil {
 			aux.Sons = append(aux.Sons, toIfaceSlice(init)[0].(*Tree))
 		} else {
@@ -199,9 +194,9 @@ func evalClauses(variable, constant, init, cmd interface{}) *Tree {
 	return t
 }
 
-func findLastRightSon(tp *Tree) *Tree {
+func findLastBlockSon(tp *Tree) *Tree {
 	aux := tp
-	for len(aux.Sons) > 1 {
+	for aux.Sons[len(aux.Sons)-1].Value == "block" {
 		aux = aux.Sons[len(aux.Sons)-1]
 	}
 	return aux
@@ -231,4 +226,36 @@ func evalVariable(id, rest interface{}) *Tree {
 	}
 
 	return &tFirstBlock
+}
+
+func evalDeclaration(declOp, initSeq interface{}) *Tree {
+	tFirstBlock := &Tree{"block", initSons()}
+	tInitSeq := initSeq.(*Tree)
+
+	if tInitSeq.Value != "init-seq" {
+		tDeclOp := &Tree{declOp.(string), initSons()}
+		tDeclOp.Sons = append(tDeclOp.Sons, &Tree{tInitSeq.Sons[0].Value, initSons()})
+		tFirstBlock.Sons = append(tFirstBlock.Sons, tDeclOp)
+		tFirstBlock.Sons = append(tFirstBlock.Sons, tInitSeq)
+	} else {
+		for i, init := range tInitSeq.Sons {
+			var tBlock *Tree
+			tDeclOp := &Tree{declOp.(string), initSons()}
+			tDeclOp.Sons = append(tDeclOp.Sons, &Tree{init.Sons[0].Value, initSons()})
+
+			if i != 0 {
+				tBlock = &Tree{"block", initSons()}
+				tBlock.Sons = append(tBlock.Sons, tDeclOp)
+				tBlock.Sons = append(tBlock.Sons, init)
+				aux := findLastBlockSon(tFirstBlock)
+				aux.Sons = append(aux.Sons, tBlock)
+			} else {
+				tFirstBlock.Sons = append(tFirstBlock.Sons, tDeclOp)
+				tFirstBlock.Sons = append(tFirstBlock.Sons, init)
+			}
+
+		}
+	}
+
+	return tFirstBlock
 }
