@@ -348,7 +348,7 @@ func criaMapa() map[string]func(SMC) SMC {
 			ident := new(Tree)
 			smc, value = getTreeFromValueStack(smc)
 			smc, ident = getTreeFromValueStack(smc)
-			createInMemory(ident, value, smc)
+			smc = createInMemory(ident, value, smc)
 			return smc
 		},
 		"seq": func(smc SMC) SMC {
