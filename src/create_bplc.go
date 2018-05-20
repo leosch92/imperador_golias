@@ -122,10 +122,12 @@ func evalSequence(first, rest interface{}) *Tree {
 	return &t
 }
 
-func evalBlock(cmd interface{}) *Tree {
-	t := Tree{"block", initSons()}
-	t.Sons = append(t.Sons, cmd.(*Tree))
-	return &t
+func evalBlock(decl, cmd interface{}) *Tree {
+	if decl != nil {
+
+	}
+	tCmd := cmd.(*Tree)
+	return tCmd
 }
 
 func evalIf(boolExp, ifBody, elseStatement interface{}) *Tree {
