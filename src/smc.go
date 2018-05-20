@@ -323,9 +323,6 @@ func criaMapa() map[string]func(SMC) SMC {
 			var found bool
 			smc, found = changeValueInMemory(ident, value, smc)
 			if !found {
-				/*println("Referência não encontrada")
-				Temporariamente fazendo att na ass,
-				 enquanto não fica pronto*/
 				panic(fmt.Sprint("Variable %s not declared.", value.Value))
 			}
 			return smc
@@ -333,10 +330,10 @@ func criaMapa() map[string]func(SMC) SMC {
 		"clauses": func(smc SMC) SMC {
 			return smc
 		},
-		"init": func(smc SMC) SMC {
+		"init-seq": func(smc SMC) SMC {
 			return smc
 		},
-		"s_init": func(smc SMC) SMC {
+		"init": func(smc SMC) SMC {
 			value := new(Tree)
 			ident := new(Tree)
 			smc, value = getTreeFromValueStack(smc)
