@@ -2,7 +2,7 @@ var fib1, fib2
 init fib1 = 1, fib2 = 1
 print(fib1);
 print(fib2);
-while (fib2 < 100) do {
+while (fib2 < 1000) do {
     var temp = fib2
     fib2 := fib1 + fib2;
     fib1 := temp;

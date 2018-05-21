@@ -70,9 +70,15 @@ func memFindNext(memory map[string]string) int {
 }
 
 func createInMemory(ident *Tree, val *Tree, smc SMC) SMC {
-	l := memFindNext(smc.M)
-	smc.E[ident.toString()] = strconv.Itoa(l)
-	smc.M[strconv.Itoa(l)] = val.toString()
+	location, found := smc.E[ident.toString()]
+	if !found{
+		panic(fmt.Sprint("Variable %s not declared.", ident.Value))
+	}
+	value, err := strconv.Atoi(val.toString())
+	if err != nil{
+		value,_ = strconv.Atoi(findValue(val,smc))
+	}
+	smc.M[location] = strconv.Itoa(value)
 	return smc
 }
 
@@ -81,7 +87,11 @@ func changeValueInMemory(ident *Tree, val *Tree, smc SMC) (SMC, bool) {
 	if !exist {
 		return smc, false
 	}
-	smc.M[l] = val.toString()
+	value, err := strconv.Atoi(val.toString())
+	if err != nil{
+		value,_ = strconv.Atoi(findValue(val,smc))
+	}
+	smc.M[l] = strconv.Itoa(value)
 	return smc, true
 }
 
@@ -110,7 +120,6 @@ func getEnviromentFromValueStack(smc SMC) (SMC, map[string]string) {
 	smc.S, genericInfo, typeOfGenericInfo = smc.S.pop()
 
 	if typeOfGenericInfo != "map[string]string" {
-		println(typeOfGenericInfo)
 		panic("Erro inesperado")
 	}
 	var enviroment = genericInfo.(map[string]string)
@@ -126,7 +135,9 @@ func criaMapa() map[string]func(SMC) SMC {
 			for key, value := range smc.E {
 				copyOfEnviroment[key] = value
 			}
-			smc.E[ident.toString()] = strconv.Itoa(memFindNext(smc.M))
+			var location = strconv.Itoa(memFindNext(smc.M))
+			smc.E[ident.toString()] = location
+			smc.M[location] = ""
 			smc.S = smc.S.push(copyOfEnviroment)
 			return smc
 		},
@@ -522,6 +533,7 @@ func resolverSMC(smc SMC, t Tree, verbose bool) SMC {
 		if verbose {
 			smc.printSmc()
 		}
+		
 	}
 
 	return smc
