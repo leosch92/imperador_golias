@@ -16,10 +16,12 @@ Clauses <- variable:(Variable __)?  constant:(Constant __)? init:(Initialization
 }
 
 Variable <- "var" __ id:Identifier rest:( _ ',' _ Identifier )* {
-    return evalVariable(id, rest), nil
+    return evalClauseDeclaration(id, rest), nil
 }
 
-Constant <- "const" __ id:Identifier rest:( _ ',' _ Identifier )*
+Constant <- "const" __ id:Identifier rest:( _ ',' _ Identifier )* {
+    return evalClauseDeclaration(id, rest), nil
+}
 
 Initialization <- "init" __ sInit:SingleInit rest:( _ ',' _ SingleInit )* {
     return evalInitialization(sInit, rest), nil

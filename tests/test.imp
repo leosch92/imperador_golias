@@ -1,0 +1,8 @@
+var a , b
+const c
+init a = 1, b = x, c = 127
+if (a == 2) {
+    print(b)
+} else {
+    print(c)
+}

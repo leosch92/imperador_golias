@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+	"os"
 	"reflect"
 )
 
@@ -150,48 +152,28 @@ func evalIf(boolExp, ifBody, elseStatement interface{}) *Tree {
 	return &t
 }
 
-func evalInitialization(sInit, rest interface{}) *Tree {
-	tFirst := sInit.(*Tree)
-	if len(toIfaceSlice(rest)) != 0 {
-		t := Tree{"init-seq", initSons()}
-		t.Sons = append(t.Sons, tFirst)
-		restSlice := toIfaceSlice(rest)
-		for _, value := range restSlice {
-			restSingleInit := toIfaceSlice(value)
-			t.Sons = append(t.Sons, restSingleInit[3].(*Tree))
-		}
-		return &t
+func evalInitialization(sInit, rest interface{}) map[string]*Tree {
+	inits := make(map[string]*Tree, 0)
+	identifier := toIfaceSlice(sInit)[0].(string)
+	expression := toIfaceSlice(sInit)[1].(*Tree)
+	inits[identifier] = expression
+	restSlice := toIfaceSlice(rest)
+	for _, initWithSpacesInterface := range restSlice {
+		initWithSpaces := toIfaceSlice(initWithSpacesInterface)
+		init := initWithSpaces[3]
+		identifier = toIfaceSlice(init)[0].(string)
+		expression = toIfaceSlice(init)[1].(*Tree)
+		inits[identifier] = expression
 	}
 
-	return tFirst
+	return inits
 }
 
-func evalSingleInit(id, expr interface{}) *Tree {
-	t := Tree{"init", initSons()}
-	t.Sons = append(t.Sons, &Tree{id.(string), initSons()})
-	t.Sons = append(t.Sons, expr.(*Tree))
-	return &t
-}
-
-func evalClauses(variable, constant, init, cmd interface{}) *Tree {
-	var t *Tree
-	if len(toIfaceSlice(variable)) != 0 {
-		t = toIfaceSlice(variable)[0].(*Tree)
-	}
-	if len(toIfaceSlice(constant)) != 0 {
-
-	}
-
-	aux := findLastBlockSon(t)
-	if len(toIfaceSlice(init)) != 0 {
-		if t != nil {
-			aux.Sons = append(aux.Sons, toIfaceSlice(init)[0].(*Tree))
-		} else {
-			t = toIfaceSlice(init)[0].(*Tree)
-		}
-	}
-	aux.Sons = append(aux.Sons, cmd.(*Tree))
-	return t
+func evalSingleInit(id, expr interface{}) []interface{} {
+	singleInit := make([]interface{}, 0)
+	singleInit = append(singleInit, id)
+	singleInit = append(singleInit, expr)
+	return singleInit
 }
 
 func findLastBlockSon(tp *Tree) *Tree {
@@ -202,30 +184,17 @@ func findLastBlockSon(tp *Tree) *Tree {
 	return aux
 }
 
-func evalVariable(id, rest interface{}) *Tree {
-	tFirstBlock := Tree{"block", initSons()}
-	tVar := Tree{"var", initSons()}
-	tVar.Sons = append(tVar.Sons, &Tree{id.(string), initSons()})
-	tFirstBlock.Sons = append(tFirstBlock.Sons, &tVar)
+func evalClauseDeclaration(id, rest interface{}) []string {
+	declared := make([]string, 0)
+	declared = append(declared, id.(string))
 
-	tPreviousBlock := &tFirstBlock
-	if rest != nil {
-		restSlice := toIfaceSlice(rest)
-
-		for _, value := range restSlice {
-			variableSlice := toIfaceSlice(value)
-			tBlock := Tree{"block", initSons()}
-			tVar := Tree{"var", initSons()}
-			tVar.Sons = append(tVar.Sons, &Tree{variableSlice[3].(string), initSons()})
-			tBlock.Sons = append(tBlock.Sons, &tVar)
-			tPreviousBlock.Sons = append(tPreviousBlock.Sons, &tBlock)
-			tPreviousBlock = &tBlock
-		}
-
-		return &tFirstBlock
+	restSlice := toIfaceSlice(rest)
+	for _, singleRest := range restSlice {
+		varWithSpaces := toIfaceSlice(singleRest)
+		declared = append(declared, varWithSpaces[3].(string))
 	}
 
-	return &tFirstBlock
+	return declared
 }
 
 func evalDeclaration(declOp, initSeq interface{}) *Tree {
@@ -258,4 +227,75 @@ func evalDeclaration(declOp, initSeq interface{}) *Tree {
 	}
 
 	return tFirstBlock
+}
+
+func evalClauses(variable, constant, init, cmd interface{}) *Tree {
+	variableConverted, constantConverted, initConverted, cmdConverted := checkAndConvert(variable, constant, init, cmd)
+
+	if len(initConverted) != (len(variableConverted) + len(constantConverted)) {
+		fmt.Println("Numero de variáveis declaradas e inicializadas é diferente. Encerrando o programa...")
+		os.Exit(-1)
+		return nil
+	} else {
+		variableTrees := createDeclarationTree(variableConverted, initConverted, "ref")
+		constantTrees := createDeclarationTree(constantConverted, initConverted, "cns")
+		allTrees := append(variableTrees, constantTrees...)
+		t, lastNode := buildTreeWithDeclarationBlocks(allTrees)
+		lastNode.Sons = append(lastNode.Sons, cmdConverted)
+
+		return t
+	}
+}
+
+func checkAndConvert(variable, constant, init, cmd interface{}) ([]string, []string, map[string]*Tree, *Tree) {
+	var variableConv, constantConv []string
+	var initConv map[string]*Tree
+	if variable != nil {
+		variableConv = toIfaceSlice(variable)[0].([]string)
+	} else {
+		variableConv = []string{}
+	}
+	if constant != nil {
+		constantConv = toIfaceSlice(constant)[0].([]string)
+	} else {
+		constantConv = []string{}
+	}
+	if init != nil {
+		initConv = toIfaceSlice(init)[0].(map[string]*Tree)
+	} else {
+		initConv = map[string]*Tree{}
+	}
+	return variableConv, constantConv, initConv, cmd.(*Tree)
+}
+
+func createDeclarationTree(variable []string, init map[string]*Tree, declOp string) []*Tree {
+	var varTrees []*Tree
+	for _, v := range variable {
+		expression, ok := init[v]
+		if !ok {
+			conversao := map[string]string{"cns": "Constante", "ref": "Variável"}
+			fmt.Printf("%s %s declarada mas não inicializada. Encerrando o programa...\n", conversao[declOp], v)
+			os.Exit(-1)
+		} else {
+			idTree := &Tree{v, initSons()}
+			varTrees = append(varTrees, &Tree{declOp, []*Tree{idTree, expression}})
+		}
+	}
+
+	return varTrees
+}
+
+func buildTreeWithDeclarationBlocks(allTrees []*Tree) (*Tree, *Tree) {
+	var t, last, new *Tree
+	for i, tree := range allTrees {
+		if i == 0 {
+			t = &Tree{"block", []*Tree{tree}}
+			last = t
+		} else {
+			new = &Tree{"block", []*Tree{tree}}
+			last.Sons = append(last.Sons, new)
+			last = new
+		}
+	}
+	return t, last
 }
