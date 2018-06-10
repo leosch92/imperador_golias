@@ -1,6 +1,6 @@
 var a , b
 const c
-init a = 1, b = x, c = 127
+init a = 1, b = 10, c = 127
 if (a == 2) {
     print(b)
 } else {

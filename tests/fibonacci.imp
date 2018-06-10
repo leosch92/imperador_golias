@@ -7,4 +7,4 @@ while (fib2 < 1000) do {
     fib2 := fib1 + fib2;
     fib1 := temp;
     print(fib2);
-};
+};m
