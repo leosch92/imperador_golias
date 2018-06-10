@@ -7,18 +7,26 @@ import (
 )
 
 var toBPLC = map[string]string{
-	"+":   "add",
-	"-":   "sub",
-	"*":   "mul",
-	"/":   "div",
-	"~":   "neg",
-	">=":  "ge",
-	">":   "gt",
-	"<=":  "le",
-	"<":   "lt",
-	"==":  "eq",
-	"/\\": "and",
-	"\\/": "or",
+	"+":     "add",
+	"-":     "sub",
+	"*":     "mul",
+	"/":     "div",
+	"~":     "neg",
+	">=":    "ge",
+	">":     "gt",
+	"<=":    "le",
+	"<":     "lt",
+	"==":    "eq",
+	"/\\":   "and",
+	"\\/":   "or",
+	"var":   "ref",
+	"const": "cns",
+}
+
+type Declaration struct {
+	Typ   string
+	Name  string
+	Value *Tree
 }
 
 func toIfaceSlice(v interface{}) []interface{} {
@@ -124,16 +132,28 @@ func evalSequence(first, rest interface{}) *Tree {
 	return &t
 }
 
-func evalBlock(decl, cmd interface{}) *Tree {
-	var t *Tree
-	if len(toIfaceSlice(decl)) != 0 {
-		t = toIfaceSlice(decl)[0].(*Tree)
-		aux := findLastBlockSon(t)
-		aux.Sons = append(aux.Sons, cmd.(*Tree))
-	} else {
-		t = cmd.(*Tree)
+func evalBlock(declSeq, cmd interface{}) *Tree {
+	var declSeqConv []*Declaration
+	if declSeq != nil {
+		declSeqConv = toIfaceSlice(declSeq)[0].([]*Declaration)
 	}
-	return t
+
+	cmdConv := cmd.(*Tree)
+	var declTrees []*Tree
+
+	for _, decl := range declSeqConv {
+		declTrees = append(declTrees, &Tree{toBPLC[decl.Typ], []*Tree{
+			&Tree{decl.Name, initSons()}, // nó de identificador
+			decl.Value}})                 // nó da expressão
+	}
+
+	t, lastNode := buildTreeWithDeclarationBlocks(declTrees)
+	if t != nil {
+		lastNode.Sons = append(lastNode.Sons, cmdConv)
+		return t
+	} else {
+		return cmdConv
+	}
 }
 
 func evalIf(boolExp, ifBody, elseStatement interface{}) *Tree {
@@ -197,36 +217,19 @@ func evalClauseDeclaration(id, rest interface{}) []string {
 	return declared
 }
 
-func evalDeclaration(declOp, initSeq interface{}) *Tree {
-	tFirstBlock := &Tree{"block", initSons()}
-	tInitSeq := initSeq.(*Tree)
+func evalDeclaration(declOp, initSeq interface{}) []*Declaration {
+	declOpConv := declOp.(string)
+	initSeqConv := initSeq.(map[string]*Tree)
+	var declarations []*Declaration
 
-	if tInitSeq.Value != "init-seq" {
-		tDeclOp := &Tree{declOp.(string), initSons()}
-		tDeclOp.Sons = append(tDeclOp.Sons, &Tree{tInitSeq.Sons[0].Value, initSons()})
-		tFirstBlock.Sons = append(tFirstBlock.Sons, tDeclOp)
-		tFirstBlock.Sons = append(tFirstBlock.Sons, tInitSeq)
-	} else {
-		for i, init := range tInitSeq.Sons {
-			var tBlock *Tree
-			tDeclOp := &Tree{declOp.(string), initSons()}
-			tDeclOp.Sons = append(tDeclOp.Sons, &Tree{init.Sons[0].Value, initSons()})
-
-			if i != 0 {
-				tBlock = &Tree{"block", initSons()}
-				tBlock.Sons = append(tBlock.Sons, tDeclOp)
-				tBlock.Sons = append(tBlock.Sons, init)
-				aux := findLastBlockSon(tFirstBlock)
-				aux.Sons = append(aux.Sons, tBlock)
-			} else {
-				tFirstBlock.Sons = append(tFirstBlock.Sons, tDeclOp)
-				tFirstBlock.Sons = append(tFirstBlock.Sons, init)
-			}
-
-		}
+	for k, v := range initSeqConv {
+		declarations = append(declarations, &Declaration{declOpConv, k, v})
 	}
 
-	return tFirstBlock
+	/*for _, decl := range declarations {
+		fmt.Println(decl.Typ, decl.Name, decl.Value)
+	}*/
+	return declarations
 }
 
 func evalClauses(variable, constant, init, cmd interface{}) *Tree {
@@ -298,4 +301,11 @@ func buildTreeWithDeclarationBlocks(allTrees []*Tree) (*Tree, *Tree) {
 		}
 	}
 	return t, last
+}
+
+func evalDeclarationSequence(first, rest interface{}) []*Declaration {
+	firstConv := first.([]*Declaration)
+	restConv := rest.([]*Declaration)
+	allDeclarations := append(firstConv, restConv...)
+	return allDeclarations
 }
