@@ -60,7 +60,7 @@ Block <- '{' _ decl:(DeclarationSequence __)? cmd: ( Sequence / Command )  _ '}'
     return evalBlock(decl, cmd), nil
 }
 
-DeclarationSequence <- Declaration / Declaration _ ';' _ Declaration
+DeclarationSequence <- Declaration _ ';' _ ( Declaration / DeclarationSequence ) / Declaration
 
 Declaration <- declOp:DeclOp __ initSeq:InitSeq {
     return evalDeclaration(declOp, initSeq), nil
