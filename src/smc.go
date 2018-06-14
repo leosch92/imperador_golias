@@ -26,10 +26,10 @@ func BtoA(boolValue bool) string {
 	return resultStr
 }
 
-func cleanMemory(smc SMC, ident string) SMC{
+func cleanMemory(smc SMC, ident string) SMC {
 	enviromentValue := smc.E[ident]
 
-	if reflect.TypeOf(enviromentValue).String()!="main.Location"{
+	if reflect.TypeOf(enviromentValue).String() != "main.Location" {
 		return smc
 	}
 
@@ -84,8 +84,8 @@ func memFindNext(memory map[string]string) string {
 
 func createVariable(ident *Tree, val *Tree, smc SMC) SMC {
 	value, err := strconv.Atoi(val.toString())
-	if err != nil{
-		value,_ = strconv.Atoi(findValue(val,smc))
+	if err != nil {
+		value, _ = strconv.Atoi(findValue(val, smc))
 	}
 	identificador := ident.toString()
 	location := memFindNext(smc.M)
@@ -96,26 +96,25 @@ func createVariable(ident *Tree, val *Tree, smc SMC) SMC {
 
 func createConst(ident *Tree, val *Tree, smc SMC) SMC {
 	value, err := strconv.Atoi(val.toString())
-	if err != nil{
-		value,_ = strconv.Atoi(findValue(val,smc))
+	if err != nil {
+		value, _ = strconv.Atoi(findValue(val, smc))
 	}
 	identificador := ident.toString()
 	smc.E[identificador] = Constante(strconv.Itoa(value))
 	return smc
-}	
-
+}
 
 func changeValueInMemory(ident *Tree, val *Tree, smc SMC) (SMC, bool) {
 	l, exist := smc.E[ident.toString()]
 
-	if !exist || reflect.TypeOf(l).String()!="main.Location"{
+	if !exist || reflect.TypeOf(l).String() != "main.Location" {
 		return smc, false
 	}
 
 	value, err := strconv.Atoi(val.toString())
-	
-	if err != nil{
-		value,_ = strconv.Atoi(findValue(val,smc))
+
+	if err != nil {
+		value, _ = strconv.Atoi(findValue(val, smc))
 	}
 
 	smc.M[string(l.(Location))] = strconv.Itoa(value)
@@ -124,16 +123,15 @@ func changeValueInMemory(ident *Tree, val *Tree, smc SMC) (SMC, bool) {
 
 func findValue(ident *Tree, smc SMC) string {
 	valorAmbiente := smc.E[ident.toString()]
-	
-	if reflect.TypeOf(valorAmbiente).String()=="main.Location"{
+
+	if reflect.TypeOf(valorAmbiente).String() == "main.Location" {
 		location := string(valorAmbiente.(Location))
 		return smc.M[location]
 	}
-	
+
 	constante := string(valorAmbiente.(Constante))
 	return constante
 }
-
 
 func getTreeFromValueStack(smc SMC) (SMC, *Tree) {
 	var genericInfo interface{}
@@ -368,7 +366,7 @@ func criaMapa() map[string]func(SMC) SMC {
 			ident := new(Tree)
 			smc, value = getTreeFromValueStack(smc)
 			smc, ident = getTreeFromValueStack(smc)
-			
+
 			smc.T = smc.T.push(ident.toString())
 
 			copyOfEnviroment := make(map[string]EnviromentValue)
@@ -376,7 +374,7 @@ func criaMapa() map[string]func(SMC) SMC {
 				copyOfEnviroment[key] = value
 			}
 			smc.S = smc.S.push(copyOfEnviroment)
-			
+
 			smc = createVariable(ident, value, smc)
 			return smc
 		},
@@ -400,16 +398,16 @@ func criaMapa() map[string]func(SMC) SMC {
 		"seq": func(smc SMC) SMC {
 			return smc
 		},
-		"block": func(smc SMC) SMC {
+		"blk": func(smc SMC) SMC {
 			var ident interface{}
-			smc.T,ident,_ = smc.T.pop()
+			smc.T, ident, _ = smc.T.pop()
 			strIdent := ident.(string)
 			smc = cleanMemory(smc, strIdent)
 
 			var enviroment map[string]EnviromentValue
 			smc, enviroment = getEnviromentFromValueStack(smc)
 			smc.E = enviroment
-			
+
 			return smc
 		},
 		"print": func(smc SMC) SMC {
@@ -503,7 +501,7 @@ func printMap(m *map[string]string) {
 	}
 }
 
-func printAmbiente(m *map[string]EnviromentValue){
+func printAmbiente(m *map[string]EnviromentValue) {
 	for k, v := range *m {
 		fmt.Printf(" %s:%s", k, v.converteParaString())
 	}
@@ -552,7 +550,7 @@ func resolverSMC(smc SMC, t Tree, verbose bool) SMC {
 		if verbose {
 			smc.printSmc()
 		}
-		
+
 	}
 
 	return smc

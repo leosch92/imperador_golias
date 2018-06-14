@@ -11,7 +11,7 @@ Input <- _ cl: Clauses _ EOF {
     return cl, nil
 }
 
-Clauses <- variable:(Variable __)?  constant:(Constant __)? init:(Initialization __)? cmd:( Sequence / Command ) {
+Clauses <- variable:(Variable _ ';' _ )?  constant:(Constant _ ';' _ )? init:(Initialization _ ';' _ )? cmd:( Sequence / Command ) {
     return evalClauses(variable, constant, init, cmd), nil
 }
 
@@ -36,7 +36,7 @@ Command <- While /
            Print / 
            Assignment
 
-Sequence <- first:Command ';' rest:( _ Command ';' )+ {
+Sequence <- first:Command rest:( _ ';' _ Command )+ {
     return evalSequence(first, rest), nil
 }
 
@@ -56,7 +56,7 @@ Print <- "print" _ '(' _ exp:Expression _ ')' {
     return evalPrint(exp), nil
 }
 
-Block <- '{' _ decl:(DeclarationSequence __)? cmd: ( Sequence / Command )  _ '}' {
+Block <- '{' _ decl:(DeclarationSequence _ ';' _ )? cmd: ( Sequence / Command )  _ '}' {
     return evalBlock(decl, cmd), nil
 }
 

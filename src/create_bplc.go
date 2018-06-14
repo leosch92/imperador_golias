@@ -126,7 +126,7 @@ func evalSequence(first, rest interface{}) *Tree {
 	for _, v := range restSl {
 		restCmd := toIfaceSlice(v)
 		// o elemento 0 contém espaçamento e o 1 contém de fato uma árvore de comando
-		t.Sons = append(t.Sons, restCmd[1].(*Tree))
+		t.Sons = append(t.Sons, restCmd[3].(*Tree))
 	}
 
 	return &t
@@ -198,7 +198,7 @@ func evalSingleInit(id, expr interface{}) []interface{} {
 
 func findLastBlockSon(tp *Tree) *Tree {
 	aux := tp
-	for aux.Sons[len(aux.Sons)-1].Value == "block" {
+	for aux.Sons[len(aux.Sons)-1].Value == "blk" {
 		aux = aux.Sons[len(aux.Sons)-1]
 	}
 	return aux
@@ -292,10 +292,10 @@ func buildTreeWithDeclarationBlocks(allTrees []*Tree) (*Tree, *Tree) {
 	var t, last, new *Tree
 	for i, tree := range allTrees {
 		if i == 0 {
-			t = &Tree{"block", []*Tree{tree}}
+			t = &Tree{"blk", []*Tree{tree}}
 			last = t
 		} else {
-			new = &Tree{"block", []*Tree{tree}}
+			new = &Tree{"blk", []*Tree{tree}}
 			last.Sons = append(last.Sons, new)
 			last = new
 		}
