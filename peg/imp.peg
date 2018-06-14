@@ -7,19 +7,40 @@
     package main
 }
 
-Input <- _ seq: Sequence _ EOF {
-    return seq, nil
+Input <- _ cl: Clauses _ EOF {
+    return cl, nil
 }
 
-Sequence <- first:Command rest:( _ Command )* {
-    return evalSequence(first, rest), nil
+Clauses <- variable:(Variable _ ';' _ )?  constant:(Constant _ ';' _ )? init:(Initialization _ ';' _ )? cmd:( Sequence / Command ) {
+    return evalClauses(variable, constant, init, cmd), nil
+}
+
+Variable <- "var" __ id:Identifier rest:( _ ',' _ Identifier )* {
+    return evalClauseDeclaration(id, rest), nil
+}
+
+Constant <- "const" __ id:Identifier rest:( _ ',' _ Identifier )* {
+    return evalClauseDeclaration(id, rest), nil
+}
+
+Initialization <- "init" __ sInit:SingleInit rest:( _ ',' _ SingleInit )* {
+    return evalInitialization(sInit, rest), nil
+}
+
+SingleInit <- id: Identifier _ '=' _ expr: Expression {
+    return evalSingleInit(id, expr), nil
 }
 
 Command <- While /
            If /
+           Print / 
            Assignment
 
-Assignment <- id:Identifier _ ":=" _ expr:Expression _ ';' {
+Sequence <- first:Command rest:( _ ';' _ Command )+ {
+    return evalSequence(first, rest), nil
+}
+
+Assignment <- id:Identifier _ ":=" _ expr:Expression {
     return evalAssignment(id, expr), nil
 }
 
@@ -31,12 +52,31 @@ If <- "if" _ '(' _ boolExp:BoolExp _ ')' _ ifBody:Block _ elseStatement:("else" 
     return evalIf(boolExp, ifBody, elseStatement), nil
 }
 
-Block <- '{' _ seq:Sequence _ '}' {
-    return seq, nil
+Print <- "print" _ '(' _ exp:Expression _ ')' {
+    return evalPrint(exp), nil
+}
+
+Block <- '{' _ decl:(DeclarationSequence _ ';' _ )? cmd: ( Sequence / Command )  _ '}' {
+    return evalBlock(decl, cmd), nil
+}
+
+DeclarationSequence <- first: Declaration _ ';' _ rest:( DeclarationSequence / Declaration ) {
+    return evalDeclarationSequence(first, rest), nil
+} / Declaration
+
+Declaration <- declOp:DeclOp __ initSeq:InitSeq {
+    return evalDeclaration(declOp, initSeq), nil
+}
+
+InitSeq <- sInit:SingleInit rest:( _ ',' _ SingleInit )* {
+    return evalInitialization(sInit, rest), nil
+}
+
+DeclOp <- ("var" / "const") {
+    return string(c.text), nil
 }
 
 Expression <- ArithExpr /
-              Identifier /
               BoolExp
 
 ArithExpr <- first:Term rest:( _ AddOp _ Term )* {
@@ -63,26 +103,22 @@ MulOp <- ( '*' / '/' ) {
     return string(c.text), nil
 }
 
-Integer <- '-'? [0-9]+ {
-    return string(c.text), nil
-}
-
 BoolExp <- keyword: KeywordBoolExp {
     return evalKeywordBoolExp(keyword), nil
-} 
+}
 / unBoolOp: UnaryBoolOp boolExp: BoolExp {
     return evalUnaryBoolExp(unBoolOp, boolExp), nil
 }
 / id1: Identifier _ binBoolOp: BinaryBoolOp _ id2: Identifier {
     return evalBinaryLogicExp(binBoolOp, id1, id2), nil
-} 
+}
 / id1: Identifier _ binBoolOp: BinaryBoolOp _ id2:ArithExpr {
     return evalBinaryArithExp(binBoolOp, id1, id2), nil
 }
 
 KeywordBoolExp <- ("true" / "false") {
     return string(c.text), nil
-}    
+}
 
 UnaryBoolOp <- '~'{
     return string(c.text), nil
@@ -92,11 +128,15 @@ BinaryBoolOp <- ( "==" / "<=" / ">=" / "<" / ">" / "/\\" / "\\/") {
     return string(c.text), nil
 }
 
-_ "whitespace" <- [ \n\t\r]*
-__ "obligatory_whitespace" <- [ \n\t\r]+
-
 Identifier <- [a-zA-Z][0-9a-zA-Z]*{
     return string(c.text), nil
 }
+
+Integer <- '-'? [0-9]+ {
+    return string(c.text), nil
+}
+
+_ "whitespace" <- [ \n\t\r]*
+__ "obligatory_whitespace" <- [ \n\t\r]+
 
 EOF <- !.

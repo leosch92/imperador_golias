@@ -35,7 +35,6 @@ func main() {
 		}
 	} else {
 		t := *got.(*Tree)
-		fmt.Println("-------- EXECUÇÃO DO PROGRAMA -------")
 		resolverSMC(iniciaSMC(), t, false)
 	}
 
