@@ -6,8 +6,7 @@ GOTEST=$(GOCMD) test
 GODEP=$(GOTEST) -i
 GOFMT=gofmt -w
 GOGET=$(GOCMD) get
-#GOPATH=$(HOME)/go
-GOPATH=$(HOME)/Programming/Go
+GOPATH=$(HOME)/go
 GOBIN=$(GOPATH)/bin
 
 #Packages
@@ -37,20 +36,12 @@ install:
 	$(GOBIN)/pigeon -o=src/parser.go peg/imp.peg
 	$(GOBUILD) -o=main ./src
 	chmod +x ./run.sh
-<<<<<<< HEAD
-	sh run.sh
-=======
 	bash run.sh
->>>>>>> enhancement/peg_com_clauses
 
 main:
 	$(GOBIN)/pigeon -o=src/parser.go peg/imp.peg
 	$(GOBUILD) -o=main ./src
-<<<<<<< HEAD
-	sh run.sh
-=======
 	bash run.sh
->>>>>>> enhancement/peg_com_clauses
 
 .PHONY: clean
 clean:
