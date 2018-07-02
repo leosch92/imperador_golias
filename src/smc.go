@@ -111,21 +111,25 @@ func changeValueInMemory(ident *Tree, val *Tree, smc SMC) (SMC, bool) {
 		return smc, false
 	}
 
-	value, err := strconv.Atoi(val.toString())
-
-	if err != nil {
-		value, _ = strconv.Atoi(findValue(val, smc))
+	//value, err := strconv.Atoi(val.toString())
+	value, err := big.NewInt(0).SetString(val.toString(), 10)
+	//fmt.Print(value)
+	if err == false {
+		value, _ = value.SetString(findValue(val, smc), 10)
 	}
 
-	smc.M[string(l.(Location))] = strconv.Itoa(value)
+	smc.M[string(l.(Location))] = value.String()
 	return smc, true
 }
 
 func findValue(ident *Tree, smc SMC) string {
+	//fmt.Println(ident.toString())
 	valorAmbiente := smc.E[ident.toString()]
+	//fmt.Println(valorAmbiente)
 
 	if reflect.TypeOf(valorAmbiente).String() == "main.Location" {
 		location := string(valorAmbiente.(Location))
+		//fmt.Print(location)
 		return smc.M[location]
 	}
 

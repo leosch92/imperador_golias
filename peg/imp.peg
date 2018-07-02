@@ -11,76 +11,65 @@ Input <- _ cl: Clauses _ EOF {
     return cl, nil
 }
 
-Clauses <- variable:(Variable _ ';' _ )?  constant:(Constant _ ';' _ )? 
-           init:(Initialization _ ';' _ )? proc: Procedure {
-    return constructClauses(variable, constant, init, proc), nil
-}
-
-Procedure <- "proc" __ id:Identifier '(' formals: Formals ')' _ blk: Block{
-    return constructProcedure(id, formals, blk), nil
-}
-
-Formals <- first:Identifier rest:(',' _ Identifier )* {
-    return constructFormals(first, rest), nil
-} / "" {
-    return nil, nil
+Clauses <- variable:(Variable _ ';' _ )?  constant:(Constant _ ';' _ )? init:(Initialization _ ';' _ )? cmd:( Sequence / Command ) {
+    return evalClauses(variable, constant, init, cmd), nil
 }
 
 Variable <- "var" __ id:Identifier rest:( _ ',' _ Identifier )* {
-    return constructClauseDeclaration(id, rest), nil
+    return evalClauseDeclaration(id, rest), nil
 }
 
 Constant <- "const" __ id:Identifier rest:( _ ',' _ Identifier )* {
-    return constructClauseDeclaration(id, rest), nil
+    return evalClauseDeclaration(id, rest), nil
 }
 
 Initialization <- "init" __ sInit:SingleInit rest:( _ ',' _ SingleInit )* {
-    return constructInitialization(sInit, rest), nil
+    return evalInitialization(sInit, rest), nil
 }
 
 SingleInit <- id: Identifier _ '=' _ expr: Expression {
-    return constructSingleInit(id, expr), nil
+    return evalSingleInit(id, expr), nil
 }
 
 Command <- While /
            If /
-           Print / 
+           Print /
            Assignment
 
 Sequence <- first:Command rest:( _ ';' _ Command )+ {
-    return constructSequence(first, rest), nil
+    return evalSequence(first, rest), nil
 }
 
 Assignment <- id:Identifier _ ":=" _ expr:Expression {
-    return constructAssignment(id, expr), nil
+    return evalAssignment(id, expr), nil
 }
 
 While <- "while" __ '(' _ boolExp:BoolExp _ ')' __ "do" _ body:Block {
-    return constructWhile(boolExp, body), nil
+    return evalWhile(boolExp, body), nil
 }
 
 If <- "if" _ '(' _ boolExp:BoolExp _ ')' _ ifBody:Block _ elseStatement:("else" _ Block)? {
-    return constructIf(boolExp, ifBody, elseStatement), nil
+    return evalIf(boolExp, ifBody, elseStatement), nil
 }
 
 Print <- "print" _ '(' _ exp:Expression _ ')' {
-    return constructPrint(exp), nil
+    return evalPrint(exp), nil
 }
 
 Block <- '{' _ decl:(DeclarationSequence _ ';' _ )? cmd: ( Sequence / Command )  _ '}' {
-    return constructBlock(decl, cmd), nil
+    return evalBlock(decl, cmd), nil
 }
 
 DeclarationSequence <- first: Declaration _ ';' _ rest:( DeclarationSequence / Declaration ) {
-    return constructDeclarationSequence(first, rest), nil
+    return evalDeclarationSequence(first, rest), nil
 } / Declaration
 
 Declaration <- declOp:DeclOp __ initSeq:InitSeq {
-    return constructDeclaration(declOp, initSeq), nil
+    return evalDeclaration(declOp, initSeq), nil
 }
 
 InitSeq <- sInit:SingleInit rest:( _ ',' _ SingleInit )* {
-    return constructInitialization(sInit, rest), nil
+    return evalInitialization(sInit, rest), nil
 }
 
 DeclOp <- ("var" / "const") {
@@ -91,11 +80,11 @@ Expression <- ArithExpr /
               BoolExp
 
 ArithExpr <- first:Term rest:( _ AddOp _ Term )* {
-    return constructArithExpr(first, rest), nil
+    return evalArithExpr(first, rest), nil
 }
 
 Term <- first:Factor rest:( _ MulOp _ Factor )* {
-    return constructArithExpr(first, rest), nil
+    return evalArithExpr(first, rest), nil
 }
 
 Factor <- '(' expr:ArithExpr ')' {
@@ -115,16 +104,16 @@ MulOp <- ( '*' / '/' ) {
 }
 
 BoolExp <- keyword: KeywordBoolExp {
-    return constructKeywordBoolExp(keyword), nil
+    return evalKeywordBoolExp(keyword), nil
 }
 / unBoolOp: UnaryBoolOp boolExp: BoolExp {
-    return constructUnaryBoolExp(unBoolOp, boolExp), nil
+    return evalUnaryBoolExp(unBoolOp, boolExp), nil
 }
 / id1: Identifier _ binBoolOp: BinaryBoolOp _ id2: Identifier {
-    return constructBinaryLogicExp(binBoolOp, id1, id2), nil
+    return evalBinaryLogicExp(binBoolOp, id1, id2), nil
 }
 / id1: Identifier _ binBoolOp: BinaryBoolOp _ id2:ArithExpr {
-    return constructBinaryArithExp(binBoolOp, id1, id2), nil
+    return evalBinaryArithExp(binBoolOp, id1, id2), nil
 }
 
 KeywordBoolExp <- ("true" / "false") {
