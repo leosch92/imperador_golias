@@ -152,6 +152,7 @@ func getEnviromentFromValueStack(smc SMC) (SMC, map[string]EnviromentValue) {
 	smc.S, genericInfo, typeOfGenericInfo = smc.S.pop()
 
 	if typeOfGenericInfo != "map[string]main.EnviromentValue" {
+		fmt.Printf("Recebido %s, esperava map[string]main.EnviromentValue\n", typeOfGenericInfo)
 		panic("Erro inesperado")
 	}
 	var enviroment = genericInfo.(map[string]EnviromentValue)
