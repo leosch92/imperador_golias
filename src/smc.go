@@ -26,10 +26,10 @@ func BtoA(boolValue bool) string {
 	return resultStr
 }
 
-func cleanMemory(smc SMC, ident string) SMC {
+func cleanMemory(smc SMC, ident string) SMC{
 	enviromentValue := smc.E[ident]
 
-	if reflect.TypeOf(enviromentValue).String() != "main.Location" {
+	if enviromentValue.WhatIsMyType()!="main.Location"{
 		return smc
 	}
 
@@ -84,8 +84,8 @@ func memFindNext(memory map[string]string) string {
 
 func createVariable(ident *Tree, val *Tree, smc SMC) SMC {
 	value, err := strconv.Atoi(val.toString())
-	if err != nil {
-		value, _ = strconv.Atoi(findValue(val, smc))
+	if err != nil{
+		value,_ = strconv.Atoi(findValue(val,smc))
 	}
 	identificador := ident.toString()
 	location := memFindNext(smc.M)
@@ -96,25 +96,26 @@ func createVariable(ident *Tree, val *Tree, smc SMC) SMC {
 
 func createConst(ident *Tree, val *Tree, smc SMC) SMC {
 	value, err := strconv.Atoi(val.toString())
-	if err != nil {
-		value, _ = strconv.Atoi(findValue(val, smc))
+	if err != nil{
+		value,_ = strconv.Atoi(findValue(val,smc))
 	}
 	identificador := ident.toString()
 	smc.E[identificador] = Constante(strconv.Itoa(value))
 	return smc
-}
+}	
+
 
 func changeValueInMemory(ident *Tree, val *Tree, smc SMC) (SMC, bool) {
 	l, exist := smc.E[ident.toString()]
 
-	if !exist || reflect.TypeOf(l).String() != "main.Location" {
+	if !exist || reflect.TypeOf(l).String()!="main.Location"{
 		return smc, false
 	}
 
 	value, err := strconv.Atoi(val.toString())
-
-	if err != nil {
-		value, _ = strconv.Atoi(findValue(val, smc))
+	
+	if err != nil{
+		value,_ = strconv.Atoi(findValue(val,smc))
 	}
 
 	smc.M[string(l.(Location))] = strconv.Itoa(value)
@@ -123,15 +124,18 @@ func changeValueInMemory(ident *Tree, val *Tree, smc SMC) (SMC, bool) {
 
 func findValue(ident *Tree, smc SMC) string {
 	valorAmbiente := smc.E[ident.toString()]
-
-	if reflect.TypeOf(valorAmbiente).String() == "main.Location" {
+	
+	if valorAmbiente.WhatIsMyType()=="main.Location"{
 		location := string(valorAmbiente.(Location))
 		return smc.M[location]
+	}else if valorAmbiente.WhatIsMyType()=="main.Constante"{
+		constante := string(valorAmbiente.(Constante))
+		return constante
+	}else{
+		panic("Erro inesperado")
 	}
-
-	constante := string(valorAmbiente.(Constante))
-	return constante
 }
+
 
 func getTreeFromValueStack(smc SMC) (SMC, *Tree) {
 	var genericInfo interface{}
@@ -366,7 +370,7 @@ func criaMapa() map[string]func(SMC) SMC {
 			ident := new(Tree)
 			smc, value = getTreeFromValueStack(smc)
 			smc, ident = getTreeFromValueStack(smc)
-
+			
 			smc.T = smc.T.push(ident.toString())
 
 			copyOfEnviroment := make(map[string]EnviromentValue)
@@ -374,7 +378,7 @@ func criaMapa() map[string]func(SMC) SMC {
 				copyOfEnviroment[key] = value
 			}
 			smc.S = smc.S.push(copyOfEnviroment)
-
+			
 			smc = createVariable(ident, value, smc)
 			return smc
 		},
@@ -398,16 +402,16 @@ func criaMapa() map[string]func(SMC) SMC {
 		"seq": func(smc SMC) SMC {
 			return smc
 		},
-		"blk": func(smc SMC) SMC {
+		"block": func(smc SMC) SMC {
 			var ident interface{}
-			smc.T, ident, _ = smc.T.pop()
+			smc.T,ident,_ = smc.T.pop()
 			strIdent := ident.(string)
 			smc = cleanMemory(smc, strIdent)
 
 			var enviroment map[string]EnviromentValue
 			smc, enviroment = getEnviromentFromValueStack(smc)
 			smc.E = enviroment
-
+			
 			return smc
 		},
 		"print": func(smc SMC) SMC {
@@ -424,6 +428,40 @@ func criaMapa() map[string]func(SMC) SMC {
 					panic(fmt.Sprintf("Variable %s not declared", value.Value))
 				}
 			}
+			return smc
+		},
+		"cal": func(smc SMC) SMC {
+			smc, actuals := getTreeFromValueStack(smc)
+			smc, idProc := getTreeFromValueStack(smc)
+			abstract, procFound := smc.E[idProc.toString()].(*Tree)
+			if !procFound{
+				panic(fmt.Sprint("Procedure %s not declared.", idProc.Value))
+			}
+
+			initial := Tree{Value:"block", Sons: initSons()}
+			current := &initial
+			execution := abstract.Sons[0]
+
+			if (len(abstract.Sons)>1){
+				execution = abstract.Sons[1]
+				listaFormals := abstract.Sons[0]
+				if (len(listaFormals.Sons)!=len(actuals.Sons)){
+					panic(fmt.Sprint("Procedure %s needs %d parameters but %d was given.", idProc.Value, len(listaFormals.Sons), len(actuals.Sons)))
+				}
+				for i:=0; i<len(listaFormals.Sons); i++{
+					identifier := listaFormals.Sons[i]
+					value := actuals.Sons[i]
+					ref := Tree{Value:"ref", Sons: append(append(initSons(),identifier),value)}
+					(*current).Sons = append((*current).Sons, &ref)
+					if (i+1<len(listaFormals.Sons)){
+						blk := Tree{Value:"block", Sons: initSons()}
+						(*current).Sons = append((*current).Sons, &blk)
+						current = &blk
+					}
+				}
+			}
+			(*current).Sons = append((*current).Sons, execution)
+			smc.C = smc.C.push(initial)
 			return smc
 		},
 	}
@@ -487,6 +525,20 @@ func criaMapaDismember() map[string]func(SMC, []*Tree) SMC {
 			smc.S = smc.S.push(forest[1])
 			return smc
 		},
+		"prc":func(smc SMC, forest []*Tree) SMC {
+			nameOfProc := forest[0].toString()
+			var abstract *Tree
+			if (len(forest)>2){
+				formals := forest[1]
+				block := forest[2]
+				abstract = &Tree{Value:"abs", Sons: append(append(initSons(),formals),block)}
+			}else{
+				block:= forest[1]
+				abstract = &Tree{Value:"abs", Sons: append(initSons(),block)}
+			}
+			smc.E[nameOfProc] = abstract
+			return smc
+		},
 	}
 	return dismember
 }
@@ -501,7 +553,7 @@ func printMap(m *map[string]string) {
 	}
 }
 
-func printAmbiente(m *map[string]EnviromentValue) {
+func printAmbiente(m *map[string]EnviromentValue){
 	for k, v := range *m {
 		fmt.Printf(" %s:%s", k, v.converteParaString())
 	}
@@ -521,9 +573,7 @@ func (smc *SMC) printSmc() {
 }
 
 func resolverSMC(smc SMC, t Tree, verbose bool) SMC {
-
-	evaluate = criaMapa()
-	dismember = criaMapaDismember()
+	
 	smc.C = smc.C.push(t)
 	if verbose {
 		smc.printSmc()
@@ -531,7 +581,7 @@ func resolverSMC(smc SMC, t Tree, verbose bool) SMC {
 	//fmt.Println(smc)
 	for smc.C.size() > 0 {
 		_, op := smc.C.pop()
-		if op.checkIfNode() {
+		if op.checkIfNode() || op.toString() == "act" {
 			_, isOperation := evaluate[op.toString()]
 			if isOperation {
 				//Se entrou aqui é porque topo da pilha é uma operação válida
@@ -550,9 +600,6 @@ func resolverSMC(smc SMC, t Tree, verbose bool) SMC {
 		if verbose {
 			smc.printSmc()
 		}
-
 	}
-
 	return smc
-
 }
