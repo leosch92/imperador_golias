@@ -232,8 +232,8 @@ func constructDeclaration(declOp, initSeq interface{}) []*Declaration {
 	return declarations
 }
 
-func constructClauses(variable, constant, init, proc interface{}) *Tree {
-	variableConverted, constantConverted, initConverted, procConverted := checkAndConvert(variable, constant, init, proc)
+func constructClauses(variable, constant, init, procs, calls interface{}) *Tree {
+	variableConverted, constantConverted, initConverted, procsConverted, callsConverted := checkAndConvert(variable, constant, init, procs, calls)
 
 	if len(initConverted) != (len(variableConverted) + len(constantConverted)) {
 		fmt.Println("Numero de variáveis declaradas e inicializadas é diferente. Encerrando o programa...")
@@ -244,15 +244,21 @@ func constructClauses(variable, constant, init, proc interface{}) *Tree {
 		constantTrees := createDeclarationTree(constantConverted, initConverted, "cns")
 		allTrees := append(variableTrees, constantTrees...)
 		t, lastNode := buildTreeWithDeclarationBlocks(allTrees)
-		lastNode.Sons = append(lastNode.Sons, procConverted)
+		for _, singleProc := range procsConverted {
+			lastNode.Sons = append(lastNode.Sons, singleProc)
+		}
+		for _, singleCall := range callsConverted {
+			lastNode.Sons = append(lastNode.Sons, singleCall)
+		}
 
 		return t
 	}
 }
 
-func checkAndConvert(variable, constant, init, cmd interface{}) ([]string, []string, map[string]*Tree, *Tree) {
+func checkAndConvert(variable, constant, init, procs, calls interface{}) ([]string, []string, map[string]*Tree, []*Tree, []*Tree) {
 	var variableConv, constantConv []string
 	var initConv map[string]*Tree
+	var procsConv, callsConv []*Tree
 	if variable != nil {
 		variableConv = toIfaceSlice(variable)[0].([]string)
 	} else {
@@ -268,7 +274,15 @@ func checkAndConvert(variable, constant, init, cmd interface{}) ([]string, []str
 	} else {
 		initConv = map[string]*Tree{}
 	}
-	return variableConv, constantConv, initConv, cmd.(*Tree)
+	for _, procWithSpaces := range toIfaceSlice(procs) {
+		singleProcConv := toIfaceSlice(procWithSpaces)[1].(*Tree)
+		procsConv = append(procsConv, singleProcConv)
+	}
+	for _, callWithSpaces := range toIfaceSlice(calls) {
+		singleCallConv := toIfaceSlice(callWithSpaces)[1].(*Tree)
+		callsConv = append(callsConv, singleCallConv)
+	}
+	return variableConv, constantConv, initConv, procsConv, callsConv
 }
 
 func createDeclarationTree(variable []string, init map[string]*Tree, declOp string) []*Tree {
@@ -338,4 +352,30 @@ func constructFormals(first, rest interface{}) *Tree {
 	}
 
 	return formalsTree
+}
+
+func constructCall(id, actuals interface{}) *Tree {
+	callTree := &Tree{"cal", initSons()}
+	idTree := &Tree{id.(string), initSons()}
+	var actualsTree *Tree
+	if actuals == nil {
+		actualsTree = &Tree{"act", initSons()}
+	} else {
+		actualsTree = actuals.(*Tree)
+	}
+	callTree.Sons = append(callTree.Sons, idTree)
+	callTree.Sons = append(callTree.Sons, actualsTree)
+	return callTree
+}
+
+func constructActuals(first, rest interface{}) *Tree {
+	actualsTree := &Tree{"act", initSons()}
+	actualsTree.Sons = append(actualsTree.Sons, first.(*Tree))
+
+	for _, actualWithComma := range toIfaceSlice(rest) {
+		actualTree := toIfaceSlice(actualWithComma)[2].(*Tree)
+		actualsTree.Sons = append(actualsTree.Sons, actualTree)
+	}
+
+	return actualsTree
 }

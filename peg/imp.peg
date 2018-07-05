@@ -12,8 +12,8 @@ Input <- _ cl: Clauses _ EOF {
 }
 
 Clauses <- variable:(Variable _ ';' _ )?  constant:(Constant _ ';' _ )? 
-           init:(Initialization _ ';' _ )? proc: Procedure {
-    return constructClauses(variable, constant, init, proc), nil
+           init:(Initialization _ ';' )? procs:( _ Procedure )+ calls:( _ Call )* {
+    return constructClauses(variable, constant, init, procs, calls), nil
 }
 
 Procedure <- "proc" __ id:Identifier '(' formals: Formals ')' _ blk: Block{
@@ -22,6 +22,16 @@ Procedure <- "proc" __ id:Identifier '(' formals: Formals ')' _ blk: Block{
 
 Formals <- first:Identifier rest:(',' _ Identifier )* {
     return constructFormals(first, rest), nil
+} / "" {
+    return nil, nil
+}
+
+Call <- "exec" __ id:Identifier '(' actuals: Actuals ')' {
+    return constructCall(id, actuals), nil
+}
+
+Actuals <- first:Expression rest:( ',' _ Expression )* {
+    return constructActuals(first, rest), nil
 } / "" {
     return nil, nil
 }

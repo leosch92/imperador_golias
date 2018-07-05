@@ -1,10 +1,13 @@
-var y;
-init y = 1;
+var z;
+init z = 1;
 
 proc fact(x){
-    if (y == 1){
-        print(x)
-    } else {
-        print(y)
-    }
+    var y = 1;
+    while (x > 1) do {
+        y := y * x;
+        x := x - 1
+    };
+    print(y)
 }
+
+exec fact(5)
