@@ -1,4 +1,8 @@
-n := 9;
-a1 := 1;
-an := 9;
-soma := n * (a1 + an)/2;
+var n, x, a1;
+init n = 10, x = 1, a1 = 1;
+
+proc soma(a, b, c) {
+  print((a*(b + c*a))/2)
+}
+
+exec soma(n, a1, x)

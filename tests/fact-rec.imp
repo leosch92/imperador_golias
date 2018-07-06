@@ -1,5 +1,5 @@
 var y, k;
-init y = 3, k = 1;
+init y = 6, k = 1;
 
 proc fact(x) {
   if (~x == 0) {

@@ -3,17 +3,22 @@ init y = 3;
 
 proc comp(x) {
   if (x == 2) {
-    print(1)
-  } else {
     print(0)
+  } else {
+    print(1)
   };
   if (x <= 2) {
-    print(1)
+    print(0)
+  } else {
+    print("1i")
+  };
+  if (x >= 2) {
+    print(11)
   } else {
     print(0)
   };
-  if (x >= 2) {
-    print(1)
+  if (x > 2) {
+    print("1 _")
   } else {
     print(0)
   }

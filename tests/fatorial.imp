@@ -10,4 +10,4 @@ proc fact(x){
    }
 }
 
-exec fact(6)
+exec fact(100)

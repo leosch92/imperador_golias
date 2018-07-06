@@ -121,6 +121,10 @@ func evalPrint(exp interface{}) *Tree {
 		t.Sons = append(t.Sons, &Tree{word, initSons()})
 		return &t
 	}
+	if num, ok := exp.(string); ok {
+		t.Sons = append(t.Sons, &Tree{num, initSons()})
+		return &t
+	}
 	t.Sons = append(t.Sons, exp.(*Tree))
 	return &t
 }

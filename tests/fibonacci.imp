@@ -1,10 +1,23 @@
-var fib1, fib2;
-init fib1 = 1, fib2 = 1;
-print(fib1);
-print(fib2);
-while (fib2 < 1000) do {
-    var temp = fib2;
-    fib2 := fib1 + fib2;
+var fib1, fib2, temp;
+init fib1 = 1, fib2 = 1, temp = 0;
+
+proc fib(y) {
+  while (y > 2) do {
+    temp := fib2;
+    fib2 := fib2 + fib1;
     fib1 := temp;
-    print(fib2)
+    y := y - 1
+  };
+  print(fib2)
 }
+
+proc many(x, y) {
+  while (x <= y) do {
+    exec fib(x);
+    x := x + 1;
+    fib1 := 1;
+    fib2 := 1
+  }
+}
+
+exec many(1, 11)

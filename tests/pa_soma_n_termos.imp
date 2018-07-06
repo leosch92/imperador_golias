@@ -1,8 +1,12 @@
-n := 10;
-soma := 0;
-i := 1;
+var soma, n, i;
+init soma = 0, n = 10, i = 1;
 
-while (i <= n) do {
-    soma := soma + i;
-    i := i + 1;
+proc pa(s, i, j) {
+  while (i <= j) do {
+    s := s + i;
+    i := i + 1
+  };
+  print(s)
 }
+
+exec pa(soma, i, n)

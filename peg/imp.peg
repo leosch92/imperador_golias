@@ -75,7 +75,7 @@ If <- "if" _ '(' _ boolExp:BoolExp _ ')' _ ifBody:Block _ elseStatement:("else" 
     return evalIf(boolExp, ifBody, elseStatement), nil
 }
 
-Print <- "print" _ '(' _ exp:(Expression / Text) _ ')' {
+Print <- "print" _ '(' _ exp:(Expression / Text / Real) _ ')' {
     return evalPrint(exp), nil
 }
 
@@ -156,6 +156,10 @@ Identifier <- [a-zA-Z][0-9a-zA-Z]*{
 }
 
 Integer <- '-'? [0-9]+ {
+    return string(c.text), nil
+}
+
+Real <- ('+' / '-')? [0-9]+ '.' [0-9]+ {
     return string(c.text), nil
 }
 
