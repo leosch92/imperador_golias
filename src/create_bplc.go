@@ -36,7 +36,7 @@ func toIfaceSlice(v interface{}) []interface{} {
 	return v.([]interface{})
 }
 
-func constructArithExpr(first, rest interface{}) *Tree {
+func evalArithExpr(first, rest interface{}) *Tree {
 	stringType := reflect.TypeOf("string teste")
 	var t Tree
 
@@ -57,7 +57,7 @@ func constructArithExpr(first, rest interface{}) *Tree {
 		t.Sons = append(t.Sons, &auxTree)
 
 		// Se recebe string da interface, constroi árvore nova, senão pega árvore já construída
-		// do retorno do construct de um Factor
+		// do retorno do eval de um Factor
 		rightOp := restExpr[3]
 
 		if reflect.TypeOf(rightOp) == stringType {
@@ -73,51 +73,51 @@ func constructArithExpr(first, rest interface{}) *Tree {
 	return &t
 }
 
-func constructWhile(boolExp, body interface{}) *Tree {
+func evalWhile(boolExp, body interface{}) *Tree {
 	t := Tree{"while", initSons()}
 	t.Sons = append(t.Sons, boolExp.(*Tree))
 	t.Sons = append(t.Sons, body.(*Tree))
 	return &t
 }
 
-func constructKeywordBoolExp(keyword interface{}) *Tree {
+func evalKeywordBoolExp(keyword interface{}) *Tree {
 	return &Tree{keyword.(string), initSons()}
 }
 
-func constructUnaryBoolExp(unBoolOp, boolExp interface{}) *Tree {
+func evalUnaryBoolExp(unBoolOp, boolExp interface{}) *Tree {
 	t := Tree{toBPLC[unBoolOp.(string)], initSons()}
 	t.Sons = append(t.Sons, boolExp.(*Tree))
 	return &t
 }
 
-func constructBinaryLogicExp(binBoolOp, id1, id2 interface{}) *Tree {
+func evalBinaryLogicExp(binBoolOp, id1, id2 interface{}) *Tree {
 	t := Tree{toBPLC[binBoolOp.(string)], initSons()}
 	t.Sons = append(t.Sons, &Tree{id1.(string), initSons()})
 	t.Sons = append(t.Sons, &Tree{id2.(string), initSons()})
 	return &t
 }
 
-func constructBinaryArithExp(binBoolOp, id1, id2 interface{}) *Tree {
+func evalBinaryArithExp(binBoolOp, id1, id2 interface{}) *Tree {
 	t := Tree{toBPLC[binBoolOp.(string)], initSons()}
 	t.Sons = append(t.Sons, &Tree{id1.(string), initSons()})
 	t.Sons = append(t.Sons, id2.(*Tree))
 	return &t
 }
 
-func constructAssignment(id, expr interface{}) *Tree {
+func evalAssignment(id, expr interface{}) *Tree {
 	t := Tree{"ass", initSons()}
 	t.Sons = append(t.Sons, &Tree{id.(string), initSons()})
 	t.Sons = append(t.Sons, expr.(*Tree))
 	return &t
 }
 
-func constructPrint(exp interface{}) *Tree {
+func evalPrint(exp interface{}) *Tree {
 	t := Tree{"print", initSons()}
 	t.Sons = append(t.Sons, exp.(*Tree))
 	return &t
 }
 
-func constructSequence(first, rest interface{}) *Tree {
+func evalSequence(first, rest interface{}) *Tree {
 	t := Tree{"seq", initSons()}
 	t.Sons = append(t.Sons, first.(*Tree))
 
@@ -132,7 +132,7 @@ func constructSequence(first, rest interface{}) *Tree {
 	return &t
 }
 
-func constructBlock(declSeq, cmd interface{}) *Tree {
+func evalBlock(declSeq, cmd interface{}) *Tree {
 	var declSeqConv []*Declaration
 	if declSeq != nil {
 		declSeqConv = toIfaceSlice(declSeq)[0].([]*Declaration)
@@ -156,7 +156,7 @@ func constructBlock(declSeq, cmd interface{}) *Tree {
 	}
 }
 
-func constructIf(boolExp, ifBody, elseStatement interface{}) *Tree {
+func evalIf(boolExp, ifBody, elseStatement interface{}) *Tree {
 	t := Tree{"if", initSons()}
 	t.Sons = append(t.Sons, boolExp.(*Tree))
 	t.Sons = append(t.Sons, ifBody.(*Tree))
@@ -172,7 +172,7 @@ func constructIf(boolExp, ifBody, elseStatement interface{}) *Tree {
 	return &t
 }
 
-func constructInitialization(sInit, rest interface{}) map[string]*Tree {
+func evalInitialization(sInit, rest interface{}) map[string]*Tree {
 	inits := make(map[string]*Tree, 0)
 	identifier := toIfaceSlice(sInit)[0].(string)
 	expression := toIfaceSlice(sInit)[1].(*Tree)
@@ -189,7 +189,7 @@ func constructInitialization(sInit, rest interface{}) map[string]*Tree {
 	return inits
 }
 
-func constructSingleInit(id, expr interface{}) []interface{} {
+func evalSingleInit(id, expr interface{}) []interface{} {
 	singleInit := make([]interface{}, 0)
 	singleInit = append(singleInit, id)
 	singleInit = append(singleInit, expr)
@@ -204,7 +204,7 @@ func findLastBlockSon(tp *Tree) *Tree {
 	return aux
 }
 
-func constructClauseDeclaration(id, rest interface{}) []string {
+func evalClauseDeclaration(id, rest interface{}) []string {
 	declared := make([]string, 0)
 	declared = append(declared, id.(string))
 
@@ -217,7 +217,7 @@ func constructClauseDeclaration(id, rest interface{}) []string {
 	return declared
 }
 
-func constructDeclaration(declOp, initSeq interface{}) []*Declaration {
+func evalDeclaration(declOp, initSeq interface{}) []*Declaration {
 	declOpConv := declOp.(string)
 	initSeqConv := initSeq.(map[string]*Tree)
 	var declarations []*Declaration
@@ -250,7 +250,6 @@ func constructClauses(variable, constant, init, procs, calls interface{}) *Tree 
 		for _, singleCall := range callsConverted {
 			lastNode.Sons = append(lastNode.Sons, singleCall)
 		}
-
 		return t
 	}
 }
@@ -317,7 +316,7 @@ func buildTreeWithDeclarationBlocks(allTrees []*Tree) (*Tree, *Tree) {
 	return t, last
 }
 
-func constructDeclarationSequence(first, rest interface{}) []*Declaration {
+func evalDeclarationSequence(first, rest interface{}) []*Declaration {
 	firstConv := first.([]*Declaration)
 	restConv := rest.([]*Declaration)
 	allDeclarations := append(firstConv, restConv...)

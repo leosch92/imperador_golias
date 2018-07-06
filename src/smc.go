@@ -118,15 +118,16 @@ func changeValueInMemory(ident *Tree, val *Tree, smc SMC) (SMC, bool) {
 		value,_ = strconv.Atoi(findValue(val,smc))
 	}
 
-	smc.M[string(l.(Location))] = strconv.Itoa(value)
+	smc.M[string(l.(Location))] = value.String()
 	return smc, true
 }
 
 func findValue(ident *Tree, smc SMC) string {
+	//fmt.Println(ident.toString())
 	valorAmbiente := smc.E[ident.toString()]
-	
 	if valorAmbiente.WhatIsMyType()=="main.Location"{
 		location := string(valorAmbiente.(Location))
+		//fmt.Print(location)
 		return smc.M[location]
 	}else if valorAmbiente.WhatIsMyType()=="main.Constante"{
 		constante := string(valorAmbiente.(Constante))
