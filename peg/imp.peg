@@ -59,7 +59,6 @@ Command <- While /
            Assignment /
            Call
 
-
 Sequence <- first:Command rest:( _ ';' _ Command )+ {
     return evalSequence(first, rest), nil
 }
