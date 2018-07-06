@@ -113,6 +113,10 @@ func evalAssignment(id, expr interface{}) *Tree {
 
 func evalPrint(exp interface{}) *Tree {
 	t := Tree{"print", initSons()}
+	if word, ok := exp.(string); ok {
+		t.Sons = append(t.Sons, &Tree{word, initSons()})
+		return &t
+	}
 	t.Sons = append(t.Sons, exp.(*Tree))
 	return &t
 }

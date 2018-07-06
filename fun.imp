@@ -1,0 +1,12 @@
+var x;
+init x = "lol";
+
+proc fun(y) {
+  x := 4
+}
+
+proc printer(y) {
+  print(y)
+}
+
+exec printer(x)

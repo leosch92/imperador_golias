@@ -1,0 +1,14 @@
+var y, k;
+init y = 3, k = 1;
+
+proc fact(x) {
+  if (~x == 0) {
+		k := k * x ;
+		exec fact(x - 1)
+  }
+  else {
+    print(k)
+  }
+}
+
+exec fact(y)

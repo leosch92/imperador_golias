@@ -1,0 +1,22 @@
+var y;
+init y = 3;
+
+proc comp(x) {
+  if (x == 2) {
+    print(1)
+  } else {
+    print(0)
+  };
+  if (x <= 2) {
+    print(1)
+  } else {
+    print(0)
+  };
+  if (x >= 2) {
+    print(1)
+  } else {
+    print(0)
+  }
+}
+
+exec comp(y)

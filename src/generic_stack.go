@@ -31,7 +31,7 @@ func printElem(e *interface{}) {
 		tree = (*e).(*Tree)
 		printBplc(tree)
 	} else if typeOf == "*map[string]string" {
-		var env = (*e).(*map[string]string)
+		var env = (*e).(*map[string]Var)
 		printMap(env)
 	} else {
 		fmt.Print(reflect.TypeOf(*e).String())

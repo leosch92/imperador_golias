@@ -10,7 +10,7 @@ import (
 type SMC struct {
 	E map[string]EnviromentValue
 	S GenericStack
-	M map[string]string
+	M map[string]Var
 	C Stack
 	T GenericStack
 }
@@ -71,7 +71,7 @@ func resolveDesigualdade(typeOf string, smc SMC, forest ...*Tree) *Tree {
 var dismember map[string]func(SMC, []*Tree) SMC
 var evaluate map[string]func(SMC) SMC
 
-func memFindNext(memory map[string]string) string {
+func memFindNext(memory map[string]Var) string {
 	max := 0
 	for k, _ := range memory {
 		kv, _ := strconv.Atoi(k)
@@ -83,14 +83,18 @@ func memFindNext(memory map[string]string) string {
 }
 
 func createVariable(ident *Tree, val *Tree, smc SMC) SMC {
-	value, err := strconv.Atoi(val.toString())
-	if err != nil {
-		value, _ = strconv.Atoi(findValue(val, smc))
+	value, err := toVar(val.toString())
+	if err {
+		value, err = toVar(findValue(val, smc))
+		if err {
+			panic(fmt.Sprintf("Erro! Variável %s não delcarada!", val.toString()))
+		}
 	}
 	identificador := ident.toString()
 	location := memFindNext(smc.M)
 	smc.E[identificador] = Location(location)
-	smc.M[location] = strconv.Itoa(value)
+	//var val
+	smc.M[location] = value
 	return smc
 }
 
@@ -111,13 +115,13 @@ func changeValueInMemory(ident *Tree, val *Tree, smc SMC) (SMC, bool) {
 		return smc, false
 	}
 
-	value, err := strconv.Atoi(val.toString())
+	value, err := toVar(val.toString())
 
-	if err != nil {
-		value, _ = strconv.Atoi(findValue(val, smc))
+	if err {
+		value, _ = toVar(findValue(val, smc))
 	}
 
-	smc.M[string(l.(Location))] = strconv.Itoa(value)
+	smc.M[string(l.(Location))] = value
 	return smc, true
 
 }
@@ -128,12 +132,29 @@ func findValue(ident *Tree, smc SMC) string {
 	if valorAmbiente.WhatIsMyType() == "main.Location" {
 		location := string(valorAmbiente.(Location))
 		//fmt.Print(location)
-		return smc.M[location]
+		return smc.M[location].toString()
 	} else if valorAmbiente.WhatIsMyType() == "main.Constante" {
 		constante := string(valorAmbiente.(Constante))
 		return constante
 	} else {
-		panic("Erro inesperado")
+		panic(fmt.Sprint("Variável %s não delcarada", ident.toString()))
+	}
+}
+
+func findVar(ident *Tree, smc SMC) (Var, bool) {
+	//fmt.Println(ident.toString())
+	valorAmbiente := smc.E[ident.toString()]
+	if valorAmbiente.WhatIsMyType() == "main.Location" {
+		location := string(valorAmbiente.(Location))
+		//fmt.Print(location)
+		val, found := smc.M[location]
+		return val, !found
+	} else if valorAmbiente.WhatIsMyType() == "main.Constante" {
+		constante := string(valorAmbiente.(Constante))
+		return toVar(constante)
+	} else {
+		//panic(fmt.Sprint("Variável %s não delcarada", ident.toString()))
+		return errVar()
 	}
 }
 
@@ -242,15 +263,18 @@ func criaMapa() map[string]func(SMC) SMC {
 			var num = 2
 			var t = new(Tree)
 			var result = true
+			var bl = false
 			for i := 0; i < num; i++ {
 				smc, t = getTreeFromValueStack(smc)
 				var str = t.toString()
 				value, found := smc.M[str]
 				if found {
-					str = value
+					bl, _ = value.toBool()
+				} else {
+					bl = (str == "true")
 				}
-				boolValue := (str == "true")
-				result = result && boolValue
+				//boolValue := (str == "true")
+				result = result && bl
 			}
 			smc.S = smc.S.push(&Tree{Value: BtoA(result), Sons: nil})
 			return smc
@@ -259,15 +283,18 @@ func criaMapa() map[string]func(SMC) SMC {
 			var num = 2
 			var t = new(Tree)
 			var result = false
+			var bl = false
 			for i := 0; i < num; i++ {
 				smc, t = getTreeFromValueStack(smc)
 				var str = t.toString()
 				value, found := smc.M[str]
 				if found {
-					str = value
+					bl, _ = value.toBool()
+				} else {
+					bl = (str == "true")
 				}
-				boolValue := (str == "true")
-				result = result || boolValue
+				//boolValue := (str == "true")
+				result = result || bl
 			}
 			smc.S = smc.S.push(&Tree{Value: BtoA(result), Sons: nil})
 			return smc
@@ -276,11 +303,14 @@ func criaMapa() map[string]func(SMC) SMC {
 			value := new(Tree)
 			smc, value = getTreeFromValueStack(smc)
 			str := value.toString()
+			var bl = true
 			boolVal, found := smc.M[str]
 			if found {
-				str = boolVal
+				bl, _ = boolVal.toBool()
+			} else {
+				bl = (str == "true")
 			}
-			boolValue := !(str == "true")
+			boolValue := !bl
 			smc.S = smc.S.push(&Tree{Value: BtoA(boolValue), Sons: nil})
 			return smc
 		},
@@ -305,7 +335,7 @@ func criaMapa() map[string]func(SMC) SMC {
 			t2 := new(Tree)
 			smc, t1 = getTreeFromValueStack(smc)
 			smc, t2 = getTreeFromValueStack(smc)
-			smc.S = smc.S.push(resolveDesigualdade("gq", smc, t1, t2))
+			smc.S = smc.S.push(resolveDesigualdade("ge", smc, t1, t2))
 			return smc
 		},
 		"lt": func(smc SMC) SMC {
@@ -416,18 +446,41 @@ func criaMapa() map[string]func(SMC) SMC {
 		},
 		"print": func(smc SMC) SMC {
 			smc, value := getTreeFromValueStack(smc)
-			num, err := big.NewInt(0).SetString(value.Value, 10)
+			str := value.Value
+			ln := len(str)
+			if ln > 0 && str[0] == '"' {
+				str = str[1:]
+				str = str[:ln-2]
+				fmt.Println(str)
+				return smc
+			}
+			if str == "false" || str == "true" {
+				fmt.Println(str)
+				return smc
+			}
+			num, err := big.NewInt(0).SetString(str, 10)
 			if err {
 				fmt.Println(num)
-			} else {
+				return smc
+			} /*else {
 				num = big.NewInt(0)
 				num, err = big.NewInt(0).SetString(findValue(value, smc), 10)
 				if err {
 					fmt.Println(num)
 				} else {
-					panic(fmt.Sprintf("Variable %s not declared", value.Value))
+					//panic(fmt.Sprintf("Variable %s not declared", str))
 				}
+			}*/
+			num2, err2 := big.NewFloat(0).SetString(str)
+			if err2 {
+				fmt.Println(num2)
+				return smc
 			}
+			val, err3 := findVar(value, smc)
+			if err3 {
+				panic(fmt.Sprintf("Variable %s not declared", str))
+			}
+			fmt.Println(val.MyString())
 			return smc
 		},
 		"cal": func(smc SMC) SMC {
@@ -471,7 +524,7 @@ func criaMapa() map[string]func(SMC) SMC {
 func iniciaSMC() SMC {
 	var smc = *new(SMC)
 	smc.E = make(map[string]EnviromentValue)
-	smc.M = make(map[string]string)
+	smc.M = make(map[string]Var)
 	return smc
 }
 
@@ -547,9 +600,9 @@ func (tree Tree) dismember() (string, []*Tree) {
 	return tree.Value, tree.Sons
 }
 
-func printMap(m *map[string]string) {
+func printMap(m *map[string]Var) {
 	for k, v := range *m {
-		fmt.Printf(" %s:%s", k, v)
+		fmt.Printf(" %s:%s", k, v.toString())
 	}
 }
 
