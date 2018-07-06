@@ -1,0 +1,8 @@
+var s;
+init s = "I Ii II L";
+
+proc printer(x) {
+  print(x)
+}
+
+exec printer(s)

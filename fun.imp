@@ -6,8 +6,8 @@ proc fun(y) {
 }
 
 proc printer(y) {
-  y := "lol";
   print(y)
 }
 
+exec fun(0)
 exec printer(x)
