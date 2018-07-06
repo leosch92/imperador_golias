@@ -571,7 +571,8 @@ func (smc *SMC) printSmc() {
 }
 
 func resolverSMC(smc SMC, t Tree, verbose bool) SMC {
-
+	evaluate = criaMapa()
+	dismember = criaMapaDismember()
 	smc.C = smc.C.push(t)
 	if verbose {
 		smc.printSmc()

@@ -55,7 +55,8 @@ SingleInit <- id: Identifier _ '=' _ expr: Expression {
 Command <- While /
            If /
            Print / 
-           Assignment
+           Assignment /
+           Call
 
 Sequence <- first:Command rest:( _ ';' _ Command )+ {
     return constructSequence(first, rest), nil

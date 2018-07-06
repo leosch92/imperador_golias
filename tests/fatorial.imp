@@ -2,12 +2,12 @@ var z;
 init z = 1;
 
 proc fact(x){
-    var y = 1;
-    while (x > 1) do {
-        y := y * x;
-        x := x - 1
-    };
-    print(y)
+   var y = 1;
+   while (x > 1) do {
+       y := y * x;
+       x := x - 1
+   };
+   print(y)
 }
 
 exec fact(5)
