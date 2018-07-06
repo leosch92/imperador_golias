@@ -11,8 +11,30 @@ Input <- _ cl: Clauses _ EOF {
     return cl, nil
 }
 
-Clauses <- variable:(Variable _ ';' _ )?  constant:(Constant _ ';' _ )? init:(Initialization _ ';' _ )? cmd:( Sequence / Command ) {
-    return evalClauses(variable, constant, init, cmd), nil
+
+Clauses <- variable:(Variable _ ';' _ )?  constant:(Constant _ ';' _ )? 
+           init:(Initialization _ ';' )? procs:( _ Procedure )+ calls:( _ Call )* {
+    return constructClauses(variable, constant, init, procs, calls), nil
+}
+
+Procedure <- "proc" __ id:Identifier '(' formals: Formals ')' _ blk: Block{
+    return constructProcedure(id, formals, blk), nil
+}
+
+Formals <- first:Identifier rest:(',' _ Identifier )* {
+    return constructFormals(first, rest), nil
+} / "" {
+    return nil, nil
+}
+
+Call <- "exec" __ id:Identifier '(' actuals: Actuals ')' {
+    return constructCall(id, actuals), nil
+}
+
+Actuals <- first:Expression rest:( ',' _ Expression )* {
+    return constructActuals(first, rest), nil
+} / "" {
+    return nil, nil
 }
 
 Variable <- "var" __ id:Identifier rest:( _ ',' _ Identifier )* {
@@ -33,8 +55,10 @@ SingleInit <- id: Identifier _ '=' _ expr: Expression {
 
 Command <- While /
            If /
-           Print /
-           Assignment
+           Print / 
+           Assignment /
+           Call
+
 
 Sequence <- first:Command rest:( _ ';' _ Command )+ {
     return evalSequence(first, rest), nil
