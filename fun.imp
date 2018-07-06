@@ -1,11 +1,12 @@
 var x;
-init x = "lol";
+init x = 0;
 
 proc fun(y) {
   x := 4
 }
 
 proc printer(y) {
+  y := "lol";
   print(y)
 }
 

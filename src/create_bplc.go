@@ -107,6 +107,10 @@ func evalBinaryArithExp(binBoolOp, id1, id2 interface{}) *Tree {
 func evalAssignment(id, expr interface{}) *Tree {
 	t := Tree{"ass", initSons()}
 	t.Sons = append(t.Sons, &Tree{id.(string), initSons()})
+	if word, ok := expr.(string); ok {
+		t.Sons = append(t.Sons, &Tree{word, initSons()})
+		return &t
+	}
 	t.Sons = append(t.Sons, expr.(*Tree))
 	return &t
 }
@@ -179,14 +183,27 @@ func evalIf(boolExp, ifBody, elseStatement interface{}) *Tree {
 func evalInitialization(sInit, rest interface{}) map[string]*Tree {
 	inits := make(map[string]*Tree, 0)
 	identifier := toIfaceSlice(sInit)[0].(string)
-	expression := toIfaceSlice(sInit)[1].(*Tree)
+	//expression := toIfaceSlice(sInit)[1].(*Tree)
+	expression := &Tree{"", initSons()}
+	expr0 := toIfaceSlice(sInit)[1]
+	if word, ok := expr0.(string); ok {
+		expression = &Tree{word, initSons()}
+	} else {
+		expression = toIfaceSlice(sInit)[1].(*Tree)
+	}
 	inits[identifier] = expression
 	restSlice := toIfaceSlice(rest)
 	for _, initWithSpacesInterface := range restSlice {
 		initWithSpaces := toIfaceSlice(initWithSpacesInterface)
 		init := initWithSpaces[3]
 		identifier = toIfaceSlice(init)[0].(string)
-		expression = toIfaceSlice(init)[1].(*Tree)
+		//expression = toIfaceSlice(init)[1].(*Tree)
+		expr := toIfaceSlice(init)[1]
+		if word, ok := expr.(string); ok {
+			expression = &Tree{word, initSons()}
+		} else {
+			expression = toIfaceSlice(init)[1].(*Tree)
+		}
 		inits[identifier] = expression
 	}
 

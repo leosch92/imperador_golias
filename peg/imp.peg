@@ -49,7 +49,7 @@ Initialization <- "init" __ sInit:SingleInit rest:( _ ',' _ SingleInit )* {
     return evalInitialization(sInit, rest), nil
 }
 
-SingleInit <- id: Identifier _ '=' _ expr: Expression {
+SingleInit <- id: Identifier _ '=' _ expr:(Expression / Text) {
     return evalSingleInit(id, expr), nil
 }
 
@@ -63,7 +63,7 @@ Sequence <- first:Command rest:( _ ';' _ Command )+ {
     return evalSequence(first, rest), nil
 }
 
-Assignment <- id:Identifier _ ":=" _ expr:Expression {
+Assignment <- id:Identifier _ ":=" _ expr:(Expression / Text) {
     return evalAssignment(id, expr), nil
 }
 
